@@ -219,24 +219,7 @@
 
 
   
-  <!-- DIALOG POP-UP MODAL UNIVERSAL (Pengganti Alert Bawaan) -->
-  <div id="customModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="max-w-xs w-full bg-slate-900 border border-slate-700/80 p-5 rounded-3xl text-center space-y-3 shadow-2xl animate-fade-in">
-      <!-- Icon Container -->
-      <div id="modalIconContainer" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center border">
-        <svg id="modalIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-      </div>
-      
-      <!-- Title & Message -->
-      <h4 id="modalTitle" class="text-sm font-bold text-white"></h4>
-      <p id="modalMessage" class="text-xs text-slate-400 leading-relaxed"></p>
   
-      <!-- Action Button -->
-      <button id="modalBtn" onclick="closeCustomModal()" class="w-full py-2.5 text-white rounded-xl text-xs font-semibold transition shadow-md">
-        OK
-      </button>
-    </div>
-  </div>
 
   
   
@@ -350,118 +333,6 @@
 
 
 
-    // HELPER DYNAMICS POP-UP MODAL
-    function showCustomDialog(type, title, message) {
-      const modal = document.getElementById('customModal');
-      const iconContainer = document.getElementById('modalIconContainer');
-      const icon = document.getElementById('modalIcon');
-      const titleElem = document.getElementById('modalTitle');
-      const msgElem = document.getElementById('modalMessage');
-      const btn = document.getElementById('modalBtn');
-    
-      titleElem.innerText = title;
-      msgElem.innerText = message;
-    
-      if (type === 'error') {
-        iconContainer.className = "w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl mx-auto flex items-center justify-center";
-        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>`;
-        btn.className = "w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-rose-600/20";
-      } else if (type === 'success') {
-        iconContainer.className = "w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl mx-auto flex items-center justify-center";
-        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
-        btn.className = "w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-brand-600/20";
-      } else {
-        // Info / Warning
-        iconContainer.className = "w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl mx-auto flex items-center justify-center";
-        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>`;
-        btn.className = "w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-amber-600/20";
-      }
-    
-      modal.classList.remove('hidden');
-    }
-    
-    function closeCustomModal() {
-      document.getElementById('customModal').classList.add('hidden');
-    }
-    
-    // PERBAIKAN PADA DEKRIPSI (PASSWORD SALAH)
-    async function decryptMessage() {
-      const cipher = document.getElementById('scannedCipher').value;
-      const pass = document.getElementById('decryptPassword').value;
-    
-      if (!pass) {
-        showCustomDialog('warning', 'Password Kosong', 'Harap masukkan password pembuka kunci terlebih dahulu.');
-        return;
-      }
-    
-      try {
-        const plainText = await decryptData(cipher, pass);
-        document.getElementById('decryptedText').innerText = plainText;
-        
-        const detectedUrl = isUrl(plainText.trim());
-        const btnArea = document.getElementById('actionBtnArea');
-    
-        if (detectedUrl) {
-          btnArea.innerHTML = `<a href="${detectedUrl}" target="_blank" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-blue-600/20">🚀 Buka Link Halaman</a>`;
-          window.open(detectedUrl, '_blank');
-        } else {
-          btnArea.innerHTML = `<button onclick="copyToClipboard('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium rounded-xl text-xs transition">📋 Salin Teks Pesan</button>`;
-        }
-    
-        document.getElementById('decryptedResult').classList.remove('hidden');
-      } catch (err) {
-        showCustomDialog('error', 'Password Salah!', 'Password yang Anda masukkan tidak cocok dengan QR Code ini.');
-      }
-    }
-    
-    // PERBAIKAN PADA GENERATE MULTIPLE QR
-    async function generateMultipleQRCodes() {
-      const rawInput = document.getElementById('genMessage').value;
-      const pass = document.getElementById('genPassword').value;
-    
-      const lines = rawInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    
-      if (lines.length === 0 || !pass) {
-        showCustomDialog('warning', 'Data Belum Lengkap', 'Mohon isi minimal satu pesan/link dan password kunci!');
-        return;
-      }
-    
-      // ... (Sisa kode fungsi generate tetap sama)
-    }
-    
-    // PERBAIKAN PADA COPY TEKS
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showCustomDialog('success', 'Berhasil Disalin', 'Teks pesan berhasil disalin ke papan klip.');
-      });
-    }
-    
-    // PERBAIKAN PADA UPLOAD GAMBAR DARI GALERI
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-    
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.getElementById('fileCanvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = img.width; canvas.height = img.height;
-          ctx.drawImage(img, 0, 0, img.width, img.height);
-          const imageData = ctx.getImageData(0, 0, img.width, img.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
-          
-          if (code && code.data) {
-            onQrDetected(code.data);
-          } else {
-            showCustomDialog('error', 'QR Tidak Terdeteksi', 'Sistem tidak menemukan QR Code pada gambar yang diunggah.');
-          }
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
     
 
 
