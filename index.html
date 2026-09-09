@@ -308,6 +308,21 @@
       return btoa(String.fromCharCode.apply(null, combined));
     }
 
+    async function decryptData(ciphertextBase64, password) {
+      try {
+        const binaryStr = atob(ciphertextBase64);
+        const combined = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) combined[i] = binaryStr.charCodeAt(i);
+        const salt = combined.slice(0, 16);
+        const iv = combined.slice(16, 28);
+        const data = combined.slice(28);
+        const key = await getKey(password, salt);
+        const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, data);
+        return new TextDecoder().decode(decrypted);
+      } catch (e) {
+        throw new Error("Password salah! Tidak dapat membuka isi data.");
+      }
+    }
 
     // FUNGSI BUKA / TUTUP MODAL ERROR
     function showErrorModal() {
