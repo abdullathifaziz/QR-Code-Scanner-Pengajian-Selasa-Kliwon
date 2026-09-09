@@ -10,6 +10,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <!-- Library JSZip & FileSaver untuk membuat file ZIP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -154,7 +157,7 @@
       </div>
       -->
 
-      <!-- SECTION GENERATOR (BULK SUPPORT) -->
+      <!-- SECTION GENERATOR (BULK & ZIP SUPPORT) -->
       <div id="sectionGenerate" class="hidden space-y-4">
         <div>
           <div class="flex justify-between items-center mb-1.5">
@@ -175,8 +178,15 @@
       
         <!-- Area Hasil Banyak QR -->
         <div id="qrDisplayArea" class="hidden mt-6 space-y-4 pt-4 border-t border-slate-700/50">
-          <div class="flex justify-between items-center px-1">
+          <!-- Header Hasil & Tombol Download ZIP -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
             <span id="qrCountLabel" class="text-xs font-semibold text-emerald-400"></span>
+            <button id="btnDownloadZip" onclick="downloadAllQRAsZip()" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              <span>Download Semua (.ZIP)</span>
+            </button>
           </div>
       
           <!-- Container Grid List QR -->
@@ -297,12 +307,14 @@
 
 
     
+    // Variable global untuk menyimpan data gambar yang telah dibuat
+    let generatedQrItems = [];
+    
     // FUNGSI GENERATE BANYAK QR CODE SEKALIGUS
     async function generateMultipleQRCodes() {
       const rawInput = document.getElementById('genMessage').value;
       const pass = document.getElementById('genPassword').value;
     
-      // Split input berdasarkan baris baru (enter) dan abaikan baris kosong
       const lines = rawInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
       if (lines.length === 0 || !pass) {
@@ -313,6 +325,7 @@
       const listContainer = document.getElementById('qrListContainer');
       const countLabel = document.getElementById('qrCountLabel');
       listContainer.innerHTML = "";
+      generatedQrItems = []; // Reset array simpanan
     
       countLabel.innerText = `✓ Berhasil Membuat ${lines.length} QR Code`;
     
@@ -320,7 +333,6 @@
         const text = lines[i];
         const encrypted = await encryptData(text, pass);
     
-        // Buat Kartu Item QR
         const card = document.createElement('div');
         card.className = "p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl flex flex-col sm:flex-row items-center gap-4 shadow-lg";
     
@@ -343,19 +355,21 @@
     
         listContainer.appendChild(card);
     
-        // Render Gambar QR Code
         new QRCode(document.getElementById(qrWrapperId), {
           text: encrypted,
           width: 110,
           height: 110,
           correctLevel: QRCode.CorrectLevel.M
         });
+    
+        // Simpan data ID wrapper untuk kebutuhan ZIP
+        generatedQrItems.push({ id: qrWrapperId, index: i + 1, text: text });
       }
     
       document.getElementById('qrDisplayArea').classList.remove('hidden');
     }
     
-    // FUNGSI DOWNLOAD INDIVIDUAL QR CODE
+    // FUNGSI DOWNLOAD INDIVIDUAL QR
     function downloadSingleQR(containerId, index) {
       const container = document.getElementById(containerId);
       const img = container.querySelector('img') || container.querySelector('canvas');
@@ -366,6 +380,47 @@
       a.href = src;
       a.download = `QR_Pengajian_Selasa_Kliwon_${index}.png`;
       a.click();
+    }
+    
+    // FUNGSI DOWNLOAD SEMUA QR SEBAGAI FILE .ZIP
+    async function downloadAllQRAsZip() {
+      if (generatedQrItems.length === 0) return;
+    
+      const zip = new JSZip();
+      const folder = zip.folder("QR_Codes_Pengajian");
+    
+      const btnZip = document.getElementById('btnDownloadZip');
+      const originalText = btnZip.innerHTML;
+      btnZip.innerText = "Mempersiapkan ZIP...";
+      btnZip.disabled = true;
+    
+      for (const item of generatedQrItems) {
+        const container = document.getElementById(item.id);
+        const img = container.querySelector('img') || container.querySelector('canvas');
+        if (!img) continue;
+    
+        let dataUrl = img.src;
+        if (!dataUrl || !dataUrl.startsWith("data:image")) {
+          dataUrl = img.toDataURL("image/png");
+        }
+    
+        // Ambil data Base64 murni dari Data URL
+        const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+    
+        // Masukkan gambar ke dalam paket ZIP
+        folder.file(`QR_${item.index}_Pengajian.png`, base64Data, { base64: true });
+      }
+    
+      // Generate dan trigger download file ZIP
+      try {
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, "QR_Pengajian_Selasa_Kliwon_ALL.zip");
+      } catch (err) {
+        alert("Gagal membuat file ZIP: " + err.message);
+      } finally {
+        btnZip.innerHTML = originalText;
+        btnZip.disabled = false;
+      }
     }
     
     
