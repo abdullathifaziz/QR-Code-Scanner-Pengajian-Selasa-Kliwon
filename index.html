@@ -34,22 +34,6 @@
 
   <div class="max-w-md mx-auto w-full bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl overflow-hidden my-auto">
     
-    <!-- Header
-    <div class="relative p-6 text-center border-b border-slate-700/50 bg-gradient-to-b from-brand-900/40 to-transparent">
-      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mb-3 shadow-inner">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
-        </svg>
-      </div>
-      <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase">
-        Pengajian Selasa Kliwon
-      </h1>
-      <p class="text-xs font-medium text-emerald-400/90 tracking-wide uppercase mt-1">
-        ABDUL LATHIF AZIZ
-      </p>
-    </div>
-    -->
-
     <!-- Header -->
     <div class="relative p-6 text-center border-b border-slate-700/50 bg-gradient-to-b from-brand-900/40 to-transparent">
       <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 p-1.5 mb-3 shadow-inner overflow-hidden">
@@ -63,7 +47,6 @@
         ABDUL LATHIF AZIZ
       </p>
     </div>
-    
 
     <!-- Navigation Tabs -->
     <div class="p-1.5 m-4 bg-slate-900/60 rounded-2xl border border-slate-700/40 flex gap-1">
@@ -102,25 +85,7 @@
             </button>
           </div>
         </div>
-      
-        <!-- POPUP MODAL PASSWORD SALAH (PENGGANTI ALERT) -->
-        <div id="errorModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div class="max-w-xs w-full bg-slate-900 border border-rose-500/40 p-5 rounded-3xl text-center space-y-3 shadow-2xl animate-fade-in">
-            <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl mx-auto flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-              </svg>
-            </div>
-            <h4 class="text-sm font-bold text-white">Password Salah!</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
-              Password yang Anda masukkan tidak cocok. Pastikan password sama dengan saat QR dibuat.
-            </p>
-            <button onclick="closeErrorModal()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-rose-600/20">
-              Coba Lagi
-            </button>
-          </div>
-        </div>
-      
+
         <canvas id="fileCanvas" class="hidden"></canvas>
       
         <!-- Decrypt Area -->
@@ -147,34 +112,6 @@
           </div>
         </div>
       </div>
-
-      
-      <!-- SECTION GENERATOR 
-      <div id="sectionGenerate" class="hidden space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1.5">Isi Pesan / Link Tujuan (URL):</label>
-          <textarea id="genMessage" placeholder="Tuliskan pesan rahasia atau link..." class="w-full p-3.5 bg-slate-900/80 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-brand-500 h-24 resize-none"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1.5">Buat Password Kunci:</label>
-          <input type="password" id="genPassword" placeholder="Buat password..." class="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
-        </div>
-
-        <button onclick="generateQRCode()" class="w-full py-3 bg-gradient-to-r from-brand-600 to-teal-600 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/20 transition text-xs uppercase">
-          Buat QR Code Terenkripsi
-        </button>
-
-        <div id="qrDisplayArea" class="hidden mt-6 text-center space-y-4 pt-4 border-t border-slate-700/50">
-          <div id="qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-xl"></div>
-          <div>
-            <button onclick="downloadQR()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-xl transition mx-auto">
-              Download Gambar QR
-            </button>
-          </div>
-        </div>
-      </div>
-      -->
 
       <!-- SECTION GENERATOR (BULK & ZIP SUPPORT) -->
       <div id="sectionGenerate" class="hidden space-y-4">
@@ -213,23 +150,63 @@
         </div>
       </div>
 
-      
     </div>
   </div>
 
-
-  
-  
-
-  
-  
   <footer class="text-center py-4 text-[11px] text-slate-500">
     <p>Pengajian Selasa Kliwon &bull; Client-Side AES-256</p>
   </footer>
 
+  <!-- DIALOG POP-UP MODAL UNIVERSAL (PENGGANTI ALERT) -->
+  <div id="customModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="max-w-xs w-full bg-slate-900 border border-slate-700/80 p-5 rounded-3xl text-center space-y-3 shadow-2xl">
+      <div id="modalIconContainer" class="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center border">
+        <svg id="modalIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+      </div>
+      <h4 id="modalTitle" class="text-sm font-bold text-white"></h4>
+      <p id="modalMessage" class="text-xs text-slate-400 leading-relaxed"></p>
+      <button id="modalBtn" onclick="closeCustomModal()" class="w-full py-2.5 text-white rounded-xl text-xs font-semibold transition shadow-md">
+        OK
+      </button>
+    </div>
+  </div>
+
   <script>
     let localStream = null;
     let animFrameId = null;
+
+    // POP-UP DIALOG CUSTOM HELPER
+    function showCustomDialog(type, title, message) {
+      const modal = document.getElementById('customModal');
+      const iconContainer = document.getElementById('modalIconContainer');
+      const icon = document.getElementById('modalIcon');
+      const titleElem = document.getElementById('modalTitle');
+      const msgElem = document.getElementById('modalMessage');
+      const btn = document.getElementById('modalBtn');
+
+      titleElem.innerText = title;
+      msgElem.innerText = message;
+
+      if (type === 'error') {
+        iconContainer.className = "w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl mx-auto flex items-center justify-center";
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>`;
+        btn.className = "w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-rose-600/20";
+      } else if (type === 'success') {
+        iconContainer.className = "w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl mx-auto flex items-center justify-center";
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
+        btn.className = "w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-brand-600/20";
+      } else {
+        iconContainer.className = "w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl mx-auto flex items-center justify-center";
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>`;
+        btn.className = "w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-amber-600/20";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeCustomModal() {
+      document.getElementById('customModal').classList.add('hidden');
+    }
 
     function switchTab(tab) {
       stopCamera();
@@ -255,7 +232,7 @@
         await video.play();
         scanFrame();
       } catch (err) {
-        alert("Gagal Akses Kamera: " + err.message);
+        showCustomDialog('error', 'Gagal Akses Kamera', err.message);
         stopCamera();
       }
     }
@@ -330,17 +307,8 @@
       }
     }
 
-
-
-
-    
-
-
-    
-    // Variable global untuk menyimpan data gambar yang telah dibuat
     let generatedQrItems = [];
     
-    // FUNGSI GENERATE BANYAK QR CODE SEKALIGUS
     async function generateMultipleQRCodes() {
       const rawInput = document.getElementById('genMessage').value;
       const pass = document.getElementById('genPassword').value;
@@ -348,14 +316,14 @@
       const lines = rawInput.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
       if (lines.length === 0 || !pass) {
-        alert("Mohon isi minimal satu pesan/link dan password!");
+        showCustomDialog('warning', 'Data Belum Lengkap', 'Mohon isi minimal satu pesan/link dan password kunci!');
         return;
       }
     
       const listContainer = document.getElementById('qrListContainer');
       const countLabel = document.getElementById('qrCountLabel');
       listContainer.innerHTML = "";
-      generatedQrItems = []; // Reset array simpanan
+      generatedQrItems = [];
     
       countLabel.innerText = `✓ Berhasil Membuat ${lines.length} QR Code`;
     
@@ -392,14 +360,12 @@
           correctLevel: QRCode.CorrectLevel.M
         });
     
-        // Simpan data ID wrapper untuk kebutuhan ZIP
         generatedQrItems.push({ id: qrWrapperId, index: i + 1, text: text });
       }
     
       document.getElementById('qrDisplayArea').classList.remove('hidden');
     }
     
-    // FUNGSI DOWNLOAD INDIVIDUAL QR
     function downloadSingleQR(containerId, index) {
       const container = document.getElementById(containerId);
       const img = container.querySelector('img') || container.querySelector('canvas');
@@ -412,7 +378,6 @@
       a.click();
     }
     
-    // FUNGSI DOWNLOAD SEMUA QR SEBAGAI FILE .ZIP
     async function downloadAllQRAsZip() {
       if (generatedQrItems.length === 0) return;
     
@@ -434,26 +399,20 @@
           dataUrl = img.toDataURL("image/png");
         }
     
-        // Ambil data Base64 murni dari Data URL
         const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
-    
-        // Masukkan gambar ke dalam paket ZIP
         folder.file(`QR_${item.index}_Pengajian.png`, base64Data, { base64: true });
       }
     
-      // Generate dan trigger download file ZIP
       try {
         const content = await zip.generateAsync({ type: "blob" });
         saveAs(content, "QR_Pengajian_Selasa_Kliwon_ALL.zip");
       } catch (err) {
-        alert("Gagal membuat file ZIP: " + err.message);
+        showCustomDialog('error', 'Gagal ZIP', err.message);
       } finally {
         btnZip.innerHTML = originalText;
         btnZip.disabled = false;
       }
     }
-    
-    
 
     function handleFileUpload(event) {
       const file = event.target.files[0];
@@ -469,7 +428,7 @@
           const imageData = ctx.getImageData(0, 0, img.width, img.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height);
           if (code && code.data) onQrDetected(code.data);
-          else alert("QR Code tidak ditemukan pada gambar.");
+          else showCustomDialog('error', 'QR Tidak Terdeteksi', 'Sistem tidak menemukan QR Code pada gambar tersebut.');
         };
         img.src = e.target.result;
       };
@@ -490,10 +449,16 @@
       } catch (_) { return false; }
     }
 
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCustomDialog('success', 'Berhasil Disalin', 'Teks pesan berhasil disalin ke papan klip.');
+      });
+    }
+
     async function decryptMessage() {
       const cipher = document.getElementById('scannedCipher').value;
       const pass = document.getElementById('decryptPassword').value;
-      if (!pass) return alert("Masukkan password terlebih dahulu!");
+      if (!pass) return showCustomDialog('warning', 'Password Kosong', 'Harap masukkan password pembuka kunci.');
 
       try {
         const plainText = await decryptData(cipher, pass);
@@ -505,18 +470,13 @@
           btnArea.innerHTML = `<a href="${detectedUrl}" target="_blank" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2">🚀 Buka Link Halaman</a>`;
           window.open(detectedUrl, '_blank');
         } else {
-          btnArea.innerHTML = `<button onclick="navigator.clipboard.writeText('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 text-slate-200 rounded-xl text-xs">📋 Salin Teks Pesan</button>`;
+          btnArea.innerHTML = `<button onclick="copyToClipboard('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 text-slate-200 rounded-xl text-xs">📋 Salin Teks Pesan</button>`;
         }
         document.getElementById('decryptedResult').classList.remove('hidden');
       } catch (err) {
-        alert(err.message);
+        showCustomDialog('error', 'Password Salah!', 'Password tidak cocok. Pastikan password sama saat QR dibuat.');
       }
     }
   </script>
-
-  
-
-  
-  
 </body>
 </html>
