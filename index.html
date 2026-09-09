@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCANNER BARCODE PENGAJIAN SELASA KLIWON</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased flex flex-col justify-between p-4 sm:p-6">
+
+  <div class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black"></div>
+
+  <div class="max-w-md mx-auto w-full bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl overflow-hidden my-auto">
+    
+    <!-- Header -->
+    <div class="relative p-6 text-center border-b border-slate-700/50 bg-gradient-to-b from-brand-900/40 to-transparent">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-brand-500 mb-3 shadow-inner">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+        </svg>
+      </div>
+      <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase">
+        Pengajian Selasa Kliwon
+      </h1>
+      <p class="text-xs font-medium text-emerald-400/90 tracking-wide uppercase mt-1">
+        AES-256 Encrypted QR
+      </p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="p-1.5 m-4 bg-slate-900/60 rounded-2xl border border-slate-700/40 flex gap-1">
+      <button id="tabScanBtn" onclick="switchTab('scan')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
+        <span>Scan QR</span>
+      </button>
+      <button id="tabGenBtn" onclick="switchTab('generate')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-2">
+        <span>Buat QR</span>
+      </button>
+    </div>
+
+    <div class="p-6 pt-2">
+      <!-- SECTION SCANNER -->
+      <div id="sectionScan" class="space-y-4">
+        <div class="space-y-2.5">
+          <button onclick="startCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2">
+            <span>📷 Buka Kamera Pemindai</span>
+          </button>
+
+          <label class="w-full py-3 px-4 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium rounded-2xl border border-slate-600/50 cursor-pointer transition flex items-center justify-center gap-2 text-xs">
+            <span>Upload dari Galeri Gambar</span>
+            <input type="file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
+          </label>
+        </div>
+
+        <!-- Camera Modal Overlay -->
+        <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl">
+            <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Arahkan Kamera ke QR Code</h3>
+            <div class="relative overflow-hidden rounded-2xl bg-black border border-slate-800">
+              <video id="modalVideo" class="w-full max-h-[320px] object-cover" playsinline></video>
+              <div class="absolute inset-0 border-2 border-emerald-500/50 rounded-2xl pointer-events-none animate-pulse"></div>
+            </div>
+            <button onclick="stopCamera()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">
+              Tutup Kamera
+            </button>
+          </div>
+        </div>
+
+        <canvas id="fileCanvas" class="hidden"></canvas>
+
+        <!-- Decrypt Area -->
+        <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
+          <div class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
+            <span>🔒 QR Code Terenkripsi Terdeteksi</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1.5">Password Pembuka Kunci:</label>
+            <input type="password" id="decryptPassword" placeholder="Masukkan password..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+          </div>
+
+          <button onclick="decryptMessage()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs tracking-wide transition shadow-md shadow-brand-600/20">
+            Buka Dekripsi Pesan
+          </button>
+
+          <input type="hidden" id="scannedCipher">
+
+          <div id="decryptedResult" class="hidden pt-3 border-t border-slate-800 space-y-3">
+            <span class="block text-xs font-semibold text-emerald-400">✓ Hasil Pesan Terbuka:</span>
+            <p id="decryptedText" class="text-sm text-slate-200 break-words whitespace-pre-wrap p-3.5 bg-slate-800/90 border border-slate-700/60 rounded-xl font-mono text-xs"></p>
+            <div id="actionBtnArea"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION GENERATOR -->
+      <div id="sectionGenerate" class="hidden space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Isi Pesan / Link Tujuan (URL):</label>
+          <textarea id="genMessage" placeholder="Tuliskan pesan rahasia atau link..." class="w-full p-3.5 bg-slate-900/80 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-brand-500 h-24 resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Buat Password Kunci:</label>
+          <input type="password" id="genPassword" placeholder="Buat password..." class="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+        </div>
+
+        <button onclick="generateQRCode()" class="w-full py-3 bg-gradient-to-r from-brand-600 to-teal-600 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/20 transition text-xs uppercase">
+          Buat QR Code Terenkripsi
+        </button>
+
+        <div id="qrDisplayArea" class="hidden mt-6 text-center space-y-4 pt-4 border-t border-slate-700/50">
+          <div id="qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-xl"></div>
+          <div>
+            <button onclick="downloadQR()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-xl transition mx-auto">
+              Download Gambar QR
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center py-4 text-[11px] text-slate-500">
+    <p>Pengajian Selasa Kliwon &bull; Client-Side AES-256</p>
+  </footer>
+
+  <script>
+    let localStream = null;
+    let animFrameId = null;
+
+    function switchTab(tab) {
+      stopCamera();
+      document.getElementById('sectionScan').classList.toggle('hidden', tab !== 'scan');
+      document.getElementById('sectionGenerate').classList.toggle('hidden', tab !== 'generate');
+      document.getElementById('tabScanBtn').className = tab === 'scan' 
+        ? "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" 
+        : "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl text-slate-400";
+      document.getElementById('tabGenBtn').className = tab === 'generate' 
+        ? "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" 
+        : "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl text-slate-400";
+    }
+
+    async function startCamera() {
+      const modal = document.getElementById('cameraModal');
+      const video = document.getElementById('modalVideo');
+      modal.classList.remove('hidden');
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = localStream;
+        video.setAttribute("playsinline", true);
+        await video.play();
+        scanFrame();
+      } catch (err) {
+        alert("Gagal Akses Kamera: " + err.message);
+        stopCamera();
+      }
+    }
+
+    function stopCamera() {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+      document.getElementById('cameraModal').classList.add('hidden');
+    }
+
+    function scanFrame() {
+      const video = document.getElementById('modalVideo');
+      const canvas = document.getElementById('fileCanvas');
+      const ctx = canvas.getContext('2d');
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code && code.data) {
+          stopCamera();
+          onQrDetected(code.data);
+          return;
+        }
+      }
+      animFrameId = requestAnimationFrame(scanFrame);
+    }
+
+    // --- ENKRIPSI AES-GCM 256 ---
+    async function getKey(password, salt) {
+      const enc = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
+      return window.crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+        keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptData(plaintext, password) {
+      const enc = new TextEncoder();
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const key = await getKey(password, salt);
+      const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, enc.encode(plaintext));
+      const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+      combined.set(salt, 0); combined.set(iv, salt.length); combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+      return btoa(String.fromCharCode.apply(null, combined));
+    }
+
+    async function decryptData(ciphertextBase64, password) {
+      try {
+        const binaryStr = atob(ciphertextBase64);
+        const combined = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) combined[i] = binaryStr.charCodeAt(i);
+        const salt = combined.slice(0, 16);
+        const iv = combined.slice(16, 28);
+        const data = combined.slice(28);
+        const key = await getKey(password, salt);
+        const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, data);
+        return new TextDecoder().decode(decrypted);
+      } catch (e) {
+        throw new Error("Password salah! Tidak dapat membuka isi data.");
+      }
+    }
+
+    async function generateQRCode() {
+      const msg = document.getElementById('genMessage').value.trim();
+      const pass = document.getElementById('genPassword').value;
+      if (!msg || !pass) return alert("Mohon isi pesan dan password!");
+
+      const encrypted = await encryptData(msg, pass);
+      const qrContainer = document.getElementById('qrcode');
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, { text: encrypted, width: 180, height: 180 });
+      document.getElementById('qrDisplayArea').classList.remove('hidden');
+    }
+
+    function downloadQR() {
+      const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+      if (!img) return;
+      const a = document.createElement('a');
+      a.href = img.src || img.toDataURL("image/png");
+      a.download = 'QR_Pengajian_Selasa_Kliwon.png';
+      a.click();
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('fileCanvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width; canvas.height = img.height;
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          const imageData = ctx.getImageData(0, 0, img.width, img.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data) onQrDetected(code.data);
+          else alert("QR Code tidak ditemukan pada gambar.");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function onQrDetected(cipherText) {
+      document.getElementById('scannedCipher').value = cipherText;
+      document.getElementById('decryptArea').classList.remove('hidden');
+      document.getElementById('decryptedResult').classList.add('hidden');
+      document.getElementById('decryptPassword').value = '';
+    }
+
+    function isUrl(string) {
+      try {
+        const url = new URL(string.includes('.') && !string.includes(' ') && !string.startsWith('http') ? 'https://' + string : string);
+        return (url.protocol === "http:" || url.protocol === "https:") ? url.href : false;
+      } catch (_) { return false; }
+    }
+
+    async function decryptMessage() {
+      const cipher = document.getElementById('scannedCipher').value;
+      const pass = document.getElementById('decryptPassword').value;
+      if (!pass) return alert("Masukkan password terlebih dahulu!");
+
+      try {
+        const plainText = await decryptData(cipher, pass);
+        document.getElementById('decryptedText').innerText = plainText;
+        const detectedUrl = isUrl(plainText.trim());
+        const btnArea = document.getElementById('actionBtnArea');
+
+        if (detectedUrl) {
+          btnArea.innerHTML = `<a href="${detectedUrl}" target="_blank" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2">🚀 Buka Link Halaman</a>`;
+          window.open(detectedUrl, '_blank');
+        } else {
+          btnArea.innerHTML = `<button onclick="navigator.clipboard.writeText('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 text-slate-200 rounded-xl text-xs">📋 Salin Teks Pesan</button>`;
+        }
+        document.getElementById('decryptedResult').classList.remove('hidden');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  </script>
+</body>
+</html>
