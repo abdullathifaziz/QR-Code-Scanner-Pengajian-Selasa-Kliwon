@@ -128,14 +128,14 @@
         <!-- Decrypt / Result Area -->
         <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
           
-          <!-- INFOKAN NO KODE & NAMA DI SINI -->
+          <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
+            <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
+          </div>
+
+          <!-- KARTU IDENTITAS TERPILIH (DIBAWAH HEADER DATA BERHASIL DIPILIH) -->
           <div id="selectedIdentityCard" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-1">
             <div id="selectedCodeDisplay" class="text-xs font-bold text-amber-400"></div>
             <div id="selectedNameDisplay" class="text-xs font-medium text-slate-300"></div>
-          </div>
-
-          <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
-            <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
           </div>
         
           <div id="passwordInputContainer">
@@ -291,19 +291,19 @@
           `;
 
           card.onclick = () => {
-            const noKode = row[0] || "-"; // Mengambil Nomor Kode (Kolom A)
-            const nama = row[1] || "";    // Mengambil Nama (Kolom B)
-            const kolomHasil = row[5] ? row[5].trim() : ""; // Mengambil Kolom F (HASIL)
+            const noKode = row[0] || "-"; // Nomor Kode (Kolom A)
+            const nama = row[1] || "";    // Nama (Kolom B)
+            const kolomHasil = row[5] ? row[5].trim() : ""; // Kolom F (HASIL)
             
             if (!kolomHasil) {
               showCustomDialog('error', 'Kolom HASIL Kosong', 'Data pada Kolom F (HASIL) untuk baris ini tidak ditemukan/kosong.');
               return;
             }
 
-            // Tampilkan info No Kode dan Nama
+            // Atur No Kode dan Nama
             const identityCard = document.getElementById('selectedIdentityCard');
-            document.getElementById('selectedCodeDisplay').innerText = `📌 Kode: ${noKode}`;
-            document.getElementById('selectedNameDisplay').innerText = nama ? `👤 Nama: ${nama}` : "";
+            document.getElementById('selectedCodeDisplay').innerText = `Kode: ${noKode}`;
+            document.getElementById('selectedNameDisplay').innerText = nama ? `Nama: ${nama}` : "";
             identityCard.classList.remove('hidden');
 
             handleDirectTextOrCipher(kolomHasil);
