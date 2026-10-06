@@ -216,14 +216,14 @@
       </div>
     </div>
 
-    <!-- KOTAK TAB RIWAYAT PRESENSI DI BAWAH -->
+    <!-- KOTAK TAB REKAP & RIWAYAT PRESENSI TAHUNAN -->
     <div class="bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl p-5 space-y-4">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700/50 pb-3">
         <div>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">📋 Riwayat & Rekap Presensi</h3>
-          <p id="totalPresensiBadge" class="text-[11px] text-emerald-400 mt-0.5">Memuat data rekap kehadiran...</p>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">📋 Rekap Presensi Tahunan</h3>
+          <p id="totalPresensiBadge" class="text-[11px] text-emerald-400 mt-0.5">Memuat data dari tab rekap presensi...</p>
         </div>
-        <button onclick="fetchHistoryAndRecap(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs transition flex items-center gap-1">
+        <button onclick="fetchAllYearlyRekap(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs transition flex items-center gap-1">
           🔄 Muat Ulang
         </button>
       </div>
@@ -231,31 +231,37 @@
       <!-- Filter Tahun & Bulan serta Kotak Pencarian -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div>
-          <label class="block text-[10px] font-medium text-slate-400 mb-1">Tahun:</label>
-          <select id="filterYear" onchange="renderHistoryAndRecap()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
-            <option value="">Semua Tahun</option>
+          <label class="block text-[10px] font-medium text-slate-400 mb-1">Tahun (Tab Sheet):</label>
+          <select id="filterYear" onchange="renderYearlyRekapView()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
           </select>
         </div>
         <div>
           <label class="block text-[10px] font-medium text-slate-400 mb-1">Bulan:</label>
-          <select id="filterMonth" onchange="renderHistoryAndRecap()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+          <select id="filterMonth" onchange="renderYearlyRekapView()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
             <option value="">Semua Bulan</option>
+            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+            <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
           </select>
         </div>
         <div>
           <label class="block text-[10px] font-medium text-slate-400 mb-1">Cari Nama/Kode:</label>
-          <input type="text" id="filterSearch" onkeyup="renderHistoryAndRecap()" placeholder="Ketik nama..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+          <input type="text" id="filterSearch" onkeyup="renderYearlyRekapView()" placeholder="Ketik nama..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
         </div>
       </div>
 
       <!-- Ringkasan Jumlah Angka Presensi per Bulan -->
-      <div id="monthlyRecapSummary" class="p-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl flex flex-wrap gap-2 text-xs">
+      <div id="monthlyRekapSummary" class="p-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl flex flex-wrap gap-2 text-xs">
         <span class="text-slate-400 italic">Statistik kehadiran per bulan akan muncul di sini...</span>
       </div>
 
-      <!-- Daftar List Riwayat Presensi -->
+      <!-- Daftar List Rekap Presensi -->
       <div id="historyListContainer" class="max-h-60 overflow-y-auto space-y-2 pr-1">
-        <div class="text-center py-4 text-xs text-slate-500 italic">Belum ada data riwayat presensi yang dimuat.</div>
+        <div class="text-center py-4 text-xs text-slate-500 italic">Memuat rekap presensi...</div>
       </div>
     </div>
 
@@ -283,135 +289,114 @@
     let localStream = null;
     let animFrameId = null;
     let spreadsheetDataCache = [];
-    let fullAttendanceHistory = [];
+    let yearlyRekapData = {}; // Menyimpan data rekap per tahun
     let lastScannedCodeTime = 0; 
     let activeCameraPassword = ""; 
-    const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
+    const BASE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=";
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchSpreadsheetData();
-      fetchHistoryAndRecap();
+      fetchAllYearlyRekap();
     });
 
-    // Mengambil data riwayat presensi (menyisir seluruh respons / data sheet Form Responses jika tersedia, atau mencatat dari sesi lokal)
-    async function fetchHistoryAndRecap(force = false) {
+    // Mengambil data dari tab sheet "REKAP PRESENSI TAHUN" secara dinamis
+    async function fetchAllYearlyRekap(force = false) {
+      const selectedYear = document.getElementById('filterYear').value || "2026";
       const badge = document.getElementById('totalPresensiBadge');
-      badge.innerText = "Memuat data presensi...";
-      
-      // Mengambil data dari localStorage untuk sesi harian/lokal, ditambah simulasi parsing rekap tanggal jika ada
-      let localRecords = [];
+      badge.innerText = `Memuat data rekap presensi ${selectedYear}...`;
+
+      const sheetName = encodeURIComponent(`REKAP PRESENSI ${selectedYear}`);
+      const url = BASE_SPREADSHEET_URL + sheetName;
+
       try {
-        const saved = localStorage.getItem('pengajian_scan_history_all');
-        if (saved) localRecords = JSON.parse(saved);
-      } catch(e) {}
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Tab sheet belum tersedia");
+        const csvText = await response.text();
+        let parsed = parseCSV(csvText);
+        
+        if (parsed.length > 0) parsed.shift(); // Lewati header
 
-      // Jika local kosong, kita buat data contoh atau ambil dari cache spreadsheet jika ada kolom tanggal
-      if (localRecords.length === 0) {
-        // Contoh data dummy/fallback jika belum ada scan lokal, atau ambil dari spreadsheet utama
-        localRecords = spreadsheetDataCache.map((row, idx) => {
-          return {
-            code: (row[0] || "").replace(/^"|"$/g, '').trim(),
-            name: (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' '),
-            date: "2026-09-15", // Contoh Tanggal default
-            timestamp: "2026-09-15 10:00:00"
-          };
-        }).filter(r => r.code);
+        // Format baris rekap (Asumsi kolom: Timestamp/Tanggal, Kode, Nama, dll)
+        yearlyRekapData[selectedYear] = parsed.map(row => ({
+          timestamp: (row[0] || "").replace(/^"|"$/g, '').trim(),
+          code: (row[1] || "").replace(/^"|"$/g, '').trim(),
+          name: (row[2] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' '),
+        })).filter(r => r.code || r.name);
+
+        badge.innerText = `Berhasil memuat ${yearlyRekapData[selectedYear].length} data rekap tahun ${selectedYear}`;
+        renderYearlyRekapView();
+      } catch (err) {
+        yearlyRekapData[selectedYear] = [];
+        badge.innerText = `Tab sheet "REKAP PRESENSI ${selectedYear}" belum ditemukan di spreadsheet.`;
+        renderYearlyRekapView();
       }
-
-      fullAttendanceHistory = localRecords;
-      populateFilterDropdowns();
-      renderHistoryAndRecap();
     }
 
-    function populateFilterDropdowns() {
-      const yearSelect = document.getElementById('filterYear');
-      const monthSelect = document.getElementById('filterMonth');
-      
-      const years = new Set();
-      const months = new Set();
-
-      fullAttendanceHistory.forEach(item => {
-        if (item.date) {
-          const parts = item.date.split('-');
-          if (parts[0]) years.add(parts[0]);
-          if (parts[1]) months.add(parts[1]);
-        }
-      });
-
-      // Populate Tahun
-      const curYearVal = yearSelect.value;
-      yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
-      Array.from(years).sort().forEach(y => {
-        const opt = document.createElement('option');
-        opt.value = y; opt.innerText = y;
-        yearSelect.appendChild(opt);
-      });
-      yearSelect.value = curYearVal;
-
-      // Populate Bulan
-      const monthNames = {
-        "01": "Januari", "02": "Februari", "03": "Maret", "04": "April", "05": "Mei", "06": "Juni",
-        "07": "Juli", "08": "Agustus", "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
-      };
-      const curMonthVal = monthSelect.value;
-      monthSelect.innerHTML = '<option value="">Semua Bulan</option>';
-      Array.from(months).sort().forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.innerText = monthNames[m] || m;
-        monthSelect.appendChild(opt);
-      });
-      monthSelect.value = curMonthVal;
-    }
-
-    function renderHistoryAndRecap() {
-      const yearFilter = document.getElementById('filterYear').value;
+    function renderYearlyRekapView() {
+      const year = document.getElementById('filterYear').value || "2026";
       const monthFilter = document.getElementById('filterMonth').value;
       const searchQuery = document.getElementById('filterSearch').value.toLowerCase().trim();
 
       const listContainer = document.getElementById('historyListContainer');
-      const summaryContainer = document.getElementById('monthlyRecapSummary');
+      const summaryContainer = document.getElementById('monthlyRekapSummary');
       const badge = document.getElementById('totalPresensiBadge');
 
-      let filtered = fullAttendanceHistory.filter(item => {
-        const [y, m] = (item.date || "").split('-');
-        const matchYear = !yearFilter || y === yearFilter;
+      const dataList = yearlyRekapData[year] || [];
+
+      let filtered = dataList.filter(item => {
+        // Ekstraksi bulan dari timestamp (format standar YYYY-MM-DD atau DD/MM/YYYY)
+        let m = "";
+        if (item.timestamp.includes("-")) {
+          const parts = item.timestamp.split(/[- :]/);
+          if (parts[1] && parts[1].length === 2) m = parts[1];
+        } else if (item.timestamp.includes("/")) {
+          const parts = item.timestamp.split(/[/ :]/);
+          // Mengatasi format DD/MM/YYYY
+          if (parts[1] && parts[1].length <= 2) m = parts[1].padStart(2, '0');
+        }
+
         const matchMonth = !monthFilter || m === monthFilter;
         const matchSearch = !searchQuery || `${item.code} ${item.name}`.toLowerCase().includes(searchQuery);
-        return matchYear && matchMonth && matchSearch;
+        return matchMonth && matchSearch;
       });
 
-      badge.innerText = `Total: ${filtered.length} Data Kehadiran Ditampilkan`;
+      badge.innerText = `Total: ${filtered.length} Data Kehadiran (${year})`;
 
-      // Hitung jumlah angka presensi per bulan untuk rekap
+      // Hitung jumlah angka presensi per bulan untuk statistik rekap
       let monthlyCounts = {};
-      fullAttendanceHistory.forEach(item => {
-        const [y, m] = (item.date || "").split('-');
+      dataList.forEach(item => {
+        let m = "";
+        if (item.timestamp.includes("-")) {
+          const parts = item.timestamp.split(/[- :]/);
+          if (parts[1] && parts[1].length === 2) m = parts[1];
+        } else if (item.timestamp.includes("/")) {
+          const parts = item.timestamp.split(/[/ :]/);
+          if (parts[1] && parts[1].length <= 2) m = parts[1].padStart(2, '0');
+        }
         if (m) {
-          const key = `${y || '2026'}-${m}`;
-          monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+          monthlyCounts[m] = (monthlyCounts[m] || 0) + 1;
         }
       });
 
       summaryContainer.innerHTML = "";
       if (Object.keys(monthlyCounts).length === 0) {
-        summaryContainer.innerHTML = `<span class="text-slate-400 italic">Belum ada statistik per bulan.</span>`;
+        summaryContainer.innerHTML = `<span class="text-slate-400 italic">Belum ada data rekap kehadiran untuk tahun ${year}.</span>`;
       } else {
         const monthNames = {
           "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "Mei", "06": "Jun",
           "07": "Jul", "08": "Agt", "09": "Sep", "10": "Okt", "11": "Nov", "12": "Des"
         };
-        for (const [key, count] of Object.entries(monthlyCounts)) {
-          const [yr, mn] = key.split('-');
+        for (const [mn, count] of Object.entries(monthlyCounts).sort()) {
           const badgeItem = document.createElement('div');
-          badgeItem.className = "px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs font-mono text-emerald-400";
-          badgeItem.innerText = `${monthNames[mn] || mn} ${yr}: ${count} Hadir`;
+          badgeItem.className = "px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono text-emerald-400";
+          badgeItem.innerText = `${monthNames[mn] || mn}: ${count} Hadir`;
           summaryContainer.appendChild(badgeItem);
         }
       }
 
       // Render List
       if (filtered.length === 0) {
-        listContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">Tidak ada data riwayat presensi yang cocok.</div>`;
+        listContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">Tidak ada data rekap yang cocok.</div>`;
         return;
       }
 
@@ -422,10 +407,10 @@
         div.innerHTML = `
           <div class="min-w-0 pr-2 space-y-0.5">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-amber-400 font-mono">${item.code}</span>
-              <span class="text-[10px] text-slate-400">${item.timestamp || item.date}</span>
+              <span class="font-bold text-amber-400 font-mono">${item.code || '-'}</span>
+              <span class="text-[10px] text-slate-400">${item.timestamp}</span>
             </div>
-            <div class="text-slate-200 truncate font-medium">${item.name}</div>
+            <div class="text-slate-200 truncate font-medium">${item.name || 'Jamaah'}</div>
           </div>
           <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-semibold">Hadir</span>
         `;
@@ -433,26 +418,10 @@
       });
     }
 
-    function recordSuccessfulScanToHistory(code, name, link) {
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-      const timeStr = now.toLocaleString('id-ID');
-
-      fullAttendanceHistory.unshift({
-        code: code,
-        name: name,
-        date: dateStr,
-        timestamp: timeStr,
-        link: link
-      });
-
-      try {
-        localStorage.setItem('pengajian_scan_history_all', JSON.stringify(fullAttendanceHistory));
-      } catch(e) {}
-
-      populateFilterDropdowns();
-      renderHistoryAndRecap();
-    }
+    // Trigger saat pilihan Tahun diubah
+    document.getElementById('filterYear').addEventListener('change', () => {
+      fetchAllYearlyRekap();
+    });
 
     function playSuccessBeep() {
       try {
@@ -492,20 +461,20 @@
 
     async function fetchSpreadsheetData(forceReload = false) {
       const statusElem = document.getElementById('spreadsheetStatus');
+      const url = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
       if (spreadsheetDataCache.length > 0 && !forceReload) {
         if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
         return;
       }
 
       try {
-        const response = await fetch(SPREADSHEET_CSV_URL);
+        const response = await fetch(url);
         const csvText = await response.text();
         let parsed = parseCSV(csvText);
         if (parsed.length > 0) parsed.shift(); 
         spreadsheetDataCache = parsed.filter(row => row.length > 0 && (row[0] || row[1]));
         if(statusElem) statusElem.innerText = `Terhubung! Menemukan ${spreadsheetDataCache.length} data anggota.`;
         if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
-        fetchHistoryAndRecap();
       } catch (err) {
         if(statusElem) statusElem.innerText = "Gagal memuat spreadsheet.";
       }
@@ -541,7 +510,7 @@
       if (spreadsheetDataCache.length === 0) return;
 
       let matchCount = 0;
-      spreadsheetDataCache.forEach((row, index) => {
+      spreadsheetDataCache.forEach((row) => {
         const noKode = (row[0] || "").replace(/^"|"$/g, '').trim();
         const nama = (row[1] || "").replace(/^"|"$/g, '').trim();
         const rowString = `${noKode} ${nama}`.toLowerCase();
@@ -574,7 +543,6 @@
             document.getElementById('selectedNameDisplay').innerText = `Nama: ${cleanNama}`;
             identityCard.classList.remove('hidden');
 
-            recordSuccessfulScanToHistory(noKode, cleanNama, kolomHasil);
             handleDirectTextOrCipher(kolomHasil);
             closeManualInputModal();
           };
@@ -704,8 +672,6 @@
 
             document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
             
-            recordSuccessfulScanToHistory(matchedCode, detectedName, decryptedLink);
-
             if (isUrl(decryptedLink)) {
               setTimeout(() => {
                 window.open(decryptedLink, '_blank');
