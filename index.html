@@ -278,9 +278,11 @@
       if (spreadsheetDataCache.length === 0) return;
 
       let matchCount = 0;
+
       spreadsheetDataCache.forEach((row, index) => {
-        const noKode = row[0] || "";
-        const nama = row[1] || "";
+        // Membersihkan tanda kutip ganda jika terbawa dari CSV
+        const noKode = (row[0] || "").replace(/^"|"$/g, '').trim();
+        const nama = (row[1] || "").replace(/^"|"$/g, '').trim();
         const rowString = `${noKode} ${nama}`.toLowerCase();
         
         if (!query || rowString.includes(query)) {
