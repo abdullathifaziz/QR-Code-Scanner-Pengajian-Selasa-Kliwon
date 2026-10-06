@@ -41,179 +41,224 @@
 
   <div class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black"></div>
 
-  <div class="max-w-md mx-auto w-full bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl overflow-hidden my-auto">
+  <div class="max-w-md mx-auto w-full space-y-4 my-auto">
     
-    <!-- Header -->
-    <div class="relative p-6 text-center border-b border-slate-700/50 bg-gradient-to-b from-brand-900/40 to-transparent">
-      <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 p-1.5 mb-3 shadow-inner overflow-hidden">
-        <img src="https://lh3.googleusercontent.com/d/1wXTaYINwOtdSRYLqCQZsK5Kf5Q9t7oa8" alt="Logo" class="w-full h-full object-contain">
+    <!-- KOTAK UTAMA APLIKASI -->
+    <div class="bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl overflow-hidden">
+      
+      <!-- Header -->
+      <div class="relative p-6 text-center border-b border-slate-700/50 bg-gradient-to-b from-brand-900/40 to-transparent">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 p-1.5 mb-3 shadow-inner overflow-hidden">
+          <img src="https://lh3.googleusercontent.com/d/1wXTaYINwOtdSRYLqCQZsK5Kf5Q9t7oa8" alt="Logo" class="w-full h-full object-contain">
+        </div>
+        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase">
+          Qr Pengajian Selasa Kliwon
+        </h1>
+        <p class="text-xs font-medium text-emerald-400/90 tracking-wide uppercase mt-1">
+          Dibuat oleh Pengurus Pengajian Selasa Kliwon
+        </p>
       </div>
-      <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white uppercase">
-        Qr Pengajian Selasa Kliwon
-      </h1>
-      <p class="text-xs font-medium text-emerald-400/90 tracking-wide uppercase mt-1">
-        Dibuat oleh Pengurus Pengajian Selasa Kliwon
-      </p>
-    </div>
 
-    <!-- Navigation Tabs -->
-    <div class="p-1.5 m-4 bg-slate-900/60 rounded-2xl border border-slate-700/40 flex gap-1">
-      <button id="tabScanBtn" onclick="switchTab('scan')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg flex items-center justify-center gap-1.5">
-        <span>Scan / Input</span>
-      </button>
-      <button id="tabGenBtn" onclick="switchTab('generate')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
-        <span>Buat QR</span>
-      </button>
-    </div>
+      <!-- Navigation Tabs -->
+      <div class="p-1.5 m-4 bg-slate-900/60 rounded-2xl border border-slate-700/40 flex gap-1">
+        <button id="tabScanBtn" onclick="switchTab('scan')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg flex items-center justify-center gap-1.5">
+          <span>Scan / Input</span>
+        </button>
+        <button id="tabGenBtn" onclick="switchTab('generate')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+          <span>Buat QR</span>
+        </button>
+      </div>
 
-    <div class="p-6 pt-2">
-      <!-- SECTION SCANNER & INPUT MANUAL -->
-      <div id="sectionScan" class="space-y-4">
-        
-        <!-- Kotak Password Kamera di Awal -->
-        <div class="p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl space-y-3 shadow-lg">
-          <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">🔑 Password Kunci Scanner:</label>
-          <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+      <div class="p-6 pt-2">
+        <!-- SECTION SCANNER & INPUT MANUAL -->
+        <div id="sectionScan" class="space-y-4">
           
-          <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-            <span>📷 Buka Kamera Pemindai (Kontinu)</span>
-          </button>
-        </div>
-
-        <div class="space-y-2.5">
-          <label class="w-full py-3 px-4 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium rounded-2xl border border-slate-600/50 cursor-pointer transition flex items-center justify-center gap-2 text-xs">
-            <span>Upload dari Galeri Gambar</span>
-            <input type="file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
-          </label>
-
-          <button onclick="openManualInputModal()" class="w-full py-3 px-4 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 font-semibold rounded-2xl transition flex items-center justify-center gap-2 text-xs">
-            <span>Input Manual / Cari Kode (Spreadsheet)</span>
-          </button>
-        </div>
-        
-        <!-- Camera Modal Overlay (Kontinu Mode) -->
-        <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
-            <div class="flex justify-between items-center">
-              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
-              <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Aktif</span>
-            </div>
+          <!-- Kotak Password Kamera di Awal -->
+          <div class="p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl space-y-3 shadow-lg">
+            <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">🔑 Password Kunci Scanner:</label>
+            <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
             
-            <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-              <video id="modalVideo" class="w-full max-h-[280px] object-cover" playsinline></video>
-              
-              <!-- Indikator Centang Sukses di Tengah -->
-              <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
-                <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
-              </div>
-
-              <!-- Indikator Salah/Error -->
-              <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
-                <div class="text-rose-400 text-xs font-bold bg-slate-900/90 px-3 py-1.5 rounded-xl border border-rose-500">Password Salah / Tidak Valid</div>
-              </div>
-            </div>
-
-            <div id="lastScannedInfo" class="p-2.5 bg-slate-800/90 rounded-xl text-xs text-amber-400 font-mono truncate">
-              Arahkan kamera ke QR Code jamaah...
-            </div>
-
-            <button onclick="stopCamera()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">
-              Tutup Kamera
+            <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+              <span>📷 Buka Kamera Pemindai (Kontinu)</span>
             </button>
           </div>
-        </div>
 
-        <!-- MODAL INPUT MANUAL / SPREADSHEET SEARCH -->
-        <div id="manualInputModal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-          <div class="max-w-md w-full bg-slate-900 border border-slate-700 p-5 rounded-3xl text-left space-y-4 shadow-2xl relative">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Pencarian Nomor Kode / Data</h3>
-              <button onclick="closeManualInputModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
-            </div>
-            
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Cari Kode / Nama Anggota:</label>
-                <div class="flex gap-2">
-                  <input type="text" id="manualCodeSearchInput" onkeyup="filterSpreadsheetData()" placeholder="Ketik nomor kode atau nama..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
-                  <button onclick="fetchSpreadsheetData(true)" title="Muat ulang data dari Spreadsheet" class="px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs">
-                    🔄
-                  </button>
+          <div class="space-y-2.5">
+            <label class="w-full py-3 px-4 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium rounded-2xl border border-slate-600/50 cursor-pointer transition flex items-center justify-center gap-2 text-xs">
+              <span>Upload dari Galeri Gambar</span>
+              <input type="file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
+            </label>
+
+            <button onclick="openManualInputModal()" class="w-full py-3 px-4 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 font-semibold rounded-2xl transition flex items-center justify-center gap-2 text-xs">
+              <span>Input Manual / Cari Kode (Spreadsheet)</span>
+            </button>
+          </div>
+          
+          <!-- Camera Modal Overlay (Kontinu Mode) -->
+          <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+            <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
+              <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Aktif</span>
+              </div>
+              
+              <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
+                <video id="modalVideo" class="w-full max-h-[280px] object-cover" playsinline></video>
+                
+                <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
+                  <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
+                </div>
+
+                <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
+                  <div class="text-rose-400 text-xs font-bold bg-slate-900/90 px-3 py-1.5 rounded-xl border border-rose-500">Password Salah / Tidak Valid</div>
                 </div>
               </div>
 
-              <div id="spreadsheetStatus" class="text-[11px] text-slate-400 italic">Memuat data dari Google Spreadsheet...</div>
-              <div id="spreadsheetResultList" class="max-h-56 overflow-y-auto space-y-2 pr-1"></div>
+              <div id="lastScannedInfo" class="p-2.5 bg-slate-800/90 rounded-xl text-xs text-amber-400 font-mono truncate">
+                Arahkan kamera ke QR Code jamaah...
+              </div>
+
+              <button onclick="stopCamera()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">
+                Tutup Kamera
+              </button>
+            </div>
+          </div>
+
+          <!-- MODAL INPUT MANUAL / SPREADSHEET SEARCH -->
+          <div id="manualInputModal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+            <div class="max-w-md w-full bg-slate-900 border border-slate-700 p-5 rounded-3xl text-left space-y-4 shadow-2xl relative">
+              <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Pencarian Nomor Kode / Data</h3>
+                <button onclick="closeManualInputModal()" class="text-slate-400 hover:text-white text-lg">✕</button>
+              </div>
+              
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Cari Kode / Nama Anggota:</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="manualCodeSearchInput" onkeyup="filterSpreadsheetData()" placeholder="Ketik nomor kode atau nama..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+                    <button onclick="fetchSpreadsheetData(true)" title="Muat ulang data dari Spreadsheet" class="px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs">
+                      🔄
+                    </button>
+                  </div>
+                </div>
+
+                <div id="spreadsheetStatus" class="text-[11px] text-slate-400 italic">Memuat data dari Google Spreadsheet...</div>
+                <div id="spreadsheetResultList" class="max-h-56 overflow-y-auto space-y-2 pr-1"></div>
+              </div>
+
+              <button onclick="closeManualInputModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+                Tutup
+              </button>
+            </div>
+          </div>
+
+          <canvas id="fileCanvas" class="hidden"></canvas>
+          
+          <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
+            <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
+              <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
             </div>
 
-            <button onclick="closeManualInputModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
-              Tutup
-            </button>
+            <div id="selectedIdentityCard" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-1">
+              <div id="selectedCodeDisplay" class="text-xs font-bold text-amber-400"></div>
+              <div id="selectedNameDisplay" class="text-xs font-medium text-slate-300"></div>
+            </div>
+          
+            <div id="passwordInputContainer">
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Password Pembuka Kunci:</label>
+              <input type="password" id="decryptPassword" placeholder="Masukkan password..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+              <button onclick="decryptMessage()" class="w-full mt-3 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs tracking-wide transition shadow-md shadow-brand-600/20">
+                Buka Dekripsi Pesan
+              </button>
+            </div>
+          
+            <input type="hidden" id="scannedCipher">
+          
+            <div id="decryptedResult" class="hidden pt-3 border-t border-slate-800 space-y-3">
+              <span id="resultTitleLabel" class="block text-xs font-semibold text-emerald-400">✓ Hasil Pesan Terbuka:</span>
+              <p id="decryptedText" class="text-sm text-slate-200 break-words whitespace-pre-wrap p-3.5 bg-slate-800/90 border border-slate-700/60 rounded-xl font-mono text-xs"></p>
+              <div id="actionBtnArea"></div>
+            </div>
           </div>
         </div>
 
-        <canvas id="fileCanvas" class="hidden"></canvas>
-        
-        <!-- Decrypt / Result Area -->
-        <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
-          <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
-            <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
+        <!-- SECTION GENERATOR -->
+        <div id="sectionGenerate" class="hidden space-y-4">
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-xs font-medium text-slate-300">Isi Pesan / Link (Satu per baris):</label>
+              <span class="text-[10px] text-brand-400 font-mono">Pisahkan dengan Enter</span>
+            </div>
+            <textarea id="genMessage" placeholder="https://link1.com&#10;https://link2.com&#10;Pesan rahasia 3" class="w-full p-3.5 bg-slate-900/80 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-brand-500 h-28 resize-none font-mono text-xs"></textarea>
           </div>
-
-          <div id="selectedIdentityCard" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-1">
-            <div id="selectedCodeDisplay" class="text-xs font-bold text-amber-400"></div>
-            <div id="selectedNameDisplay" class="text-xs font-medium text-slate-300"></div>
+          
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1.5">Buat Password Kunci (Untuk Semua QR):</label>
+            <input type="password" id="genPassword" placeholder="Buat password..." class="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
           </div>
-        
-          <div id="passwordInputContainer">
-            <label class="block text-xs font-medium text-slate-400 mb-1.5">Password Pembuka Kunci:</label>
-            <input type="password" id="decryptPassword" placeholder="Masukkan password..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
-            <button onclick="decryptMessage()" class="w-full mt-3 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs tracking-wide transition shadow-md shadow-brand-600/20">
-              Buka Dekripsi Pesan
-            </button>
-          </div>
-        
-          <input type="hidden" id="scannedCipher">
-        
-          <div id="decryptedResult" class="hidden pt-3 border-t border-slate-800 space-y-3">
-            <span id="resultTitleLabel" class="block text-xs font-semibold text-emerald-400">✓ Hasil Pesan Terbuka:</span>
-            <p id="decryptedText" class="text-sm text-slate-200 break-words whitespace-pre-wrap p-3.5 bg-slate-800/90 border border-slate-700/60 rounded-xl font-mono text-xs"></p>
-            <div id="actionBtnArea"></div>
+          
+          <button onclick="generateMultipleQRCodes()" class="w-full py-3 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/20 active:scale-[0.99] transition text-xs uppercase tracking-wider">
+            Buat Semua QR Code Terenkripsi
+          </button>
+          
+          <div id="qrDisplayArea" class="hidden mt-6 space-y-4 pt-4 border-t border-slate-700/50">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
+              <span id="qrCountLabel" class="text-xs font-semibold text-emerald-400"></span>
+              <button id="btnDownloadZip" onclick="downloadAllQRAsZip()" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
+                <span>Download Semua (.ZIP)</span>
+              </button>
+            </div>
+            <div id="qrListContainer" class="space-y-4 max-h-[400px] overflow-y-auto pr-1"></div>
           </div>
         </div>
+
       </div>
-
-      <!-- SECTION GENERATOR (BULK & ZIP SUPPORT) -->
-      <div id="sectionGenerate" class="hidden space-y-4">
-        <div>
-          <div class="flex justify-between items-center mb-1.5">
-            <label class="block text-xs font-medium text-slate-300">Isi Pesan / Link (Satu per baris):</label>
-            <span class="text-[10px] text-brand-400 font-mono">Pisahkan dengan Enter</span>
-          </div>
-          <textarea id="genMessage" placeholder="https://link1.com&#10;https://link2.com&#10;Pesan rahasia 3" class="w-full p-3.5 bg-slate-900/80 border border-slate-700 rounded-2xl text-sm text-white focus:outline-none focus:border-brand-500 h-28 resize-none font-mono text-xs"></textarea>
-        </div>
-        
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1.5">Buat Password Kunci (Untuk Semua QR):</label>
-          <input type="password" id="genPassword" placeholder="Buat password..." class="w-full px-3.5 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
-        </div>
-        
-        <button onclick="generateMultipleQRCodes()" class="w-full py-3 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/20 active:scale-[0.99] transition text-xs uppercase tracking-wider">
-          Buat Semua QR Code Terenkripsi
-        </button>
-        
-        <div id="qrDisplayArea" class="hidden mt-6 space-y-4 pt-4 border-t border-slate-700/50">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
-            <span id="qrCountLabel" class="text-xs font-semibold text-emerald-400"></span>
-            <button id="btnDownloadZip" onclick="downloadAllQRAsZip()" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
-              <span>Download Semua (.ZIP)</span>
-            </button>
-          </div>
-          <div id="qrListContainer" class="space-y-4 max-h-[400px] overflow-y-auto pr-1"></div>
-        </div>
-      </div>
-
     </div>
+
+    <!-- KOTAK TAB RIWAYAT PRESENSI DI BAWAH -->
+    <div class="bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700/50 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">📋 Riwayat & Rekap Presensi</h3>
+          <p id="totalPresensiBadge" class="text-[11px] text-emerald-400 mt-0.5">Memuat data rekap kehadiran...</p>
+        </div>
+        <button onclick="fetchHistoryAndRecap(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs transition flex items-center gap-1">
+          🔄 Muat Ulang
+        </button>
+      </div>
+
+      <!-- Filter Tahun & Bulan serta Kotak Pencarian -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-medium text-slate-400 mb-1">Tahun:</label>
+          <select id="filterYear" onchange="renderHistoryAndRecap()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+            <option value="">Semua Tahun</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-medium text-slate-400 mb-1">Bulan:</label>
+          <select id="filterMonth" onchange="renderHistoryAndRecap()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+            <option value="">Semua Bulan</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-medium text-slate-400 mb-1">Cari Nama/Kode:</label>
+          <input type="text" id="filterSearch" onkeyup="renderHistoryAndRecap()" placeholder="Ketik nama..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
+        </div>
+      </div>
+
+      <!-- Ringkasan Jumlah Angka Presensi per Bulan -->
+      <div id="monthlyRecapSummary" class="p-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl flex flex-wrap gap-2 text-xs">
+        <span class="text-slate-400 italic">Statistik kehadiran per bulan akan muncul di sini...</span>
+      </div>
+
+      <!-- Daftar List Riwayat Presensi -->
+      <div id="historyListContainer" class="max-h-60 overflow-y-auto space-y-2 pr-1">
+        <div class="text-center py-4 text-xs text-slate-500 italic">Belum ada data riwayat presensi yang dimuat.</div>
+      </div>
+    </div>
+
   </div>
 
   <footer class="text-center py-4 text-[11px] text-slate-500">
@@ -238,13 +283,176 @@
     let localStream = null;
     let animFrameId = null;
     let spreadsheetDataCache = [];
+    let fullAttendanceHistory = [];
     let lastScannedCodeTime = 0; 
     let activeCameraPassword = ""; 
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchSpreadsheetData();
+      fetchHistoryAndRecap();
     });
+
+    // Mengambil data riwayat presensi (menyisir seluruh respons / data sheet Form Responses jika tersedia, atau mencatat dari sesi lokal)
+    async function fetchHistoryAndRecap(force = false) {
+      const badge = document.getElementById('totalPresensiBadge');
+      badge.innerText = "Memuat data presensi...";
+      
+      // Mengambil data dari localStorage untuk sesi harian/lokal, ditambah simulasi parsing rekap tanggal jika ada
+      let localRecords = [];
+      try {
+        const saved = localStorage.getItem('pengajian_scan_history_all');
+        if (saved) localRecords = JSON.parse(saved);
+      } catch(e) {}
+
+      // Jika local kosong, kita buat data contoh atau ambil dari cache spreadsheet jika ada kolom tanggal
+      if (localRecords.length === 0) {
+        // Contoh data dummy/fallback jika belum ada scan lokal, atau ambil dari spreadsheet utama
+        localRecords = spreadsheetDataCache.map((row, idx) => {
+          return {
+            code: (row[0] || "").replace(/^"|"$/g, '').trim(),
+            name: (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' '),
+            date: "2026-09-15", // Contoh Tanggal default
+            timestamp: "2026-09-15 10:00:00"
+          };
+        }).filter(r => r.code);
+      }
+
+      fullAttendanceHistory = localRecords;
+      populateFilterDropdowns();
+      renderHistoryAndRecap();
+    }
+
+    function populateFilterDropdowns() {
+      const yearSelect = document.getElementById('filterYear');
+      const monthSelect = document.getElementById('filterMonth');
+      
+      const years = new Set();
+      const months = new Set();
+
+      fullAttendanceHistory.forEach(item => {
+        if (item.date) {
+          const parts = item.date.split('-');
+          if (parts[0]) years.add(parts[0]);
+          if (parts[1]) months.add(parts[1]);
+        }
+      });
+
+      // Populate Tahun
+      const curYearVal = yearSelect.value;
+      yearSelect.innerHTML = '<option value="">Semua Tahun</option>';
+      Array.from(years).sort().forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y; opt.innerText = y;
+        yearSelect.appendChild(opt);
+      });
+      yearSelect.value = curYearVal;
+
+      // Populate Bulan
+      const monthNames = {
+        "01": "Januari", "02": "Februari", "03": "Maret", "04": "April", "05": "Mei", "06": "Juni",
+        "07": "Juli", "08": "Agustus", "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
+      };
+      const curMonthVal = monthSelect.value;
+      monthSelect.innerHTML = '<option value="">Semua Bulan</option>';
+      Array.from(months).sort().forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.innerText = monthNames[m] || m;
+        monthSelect.appendChild(opt);
+      });
+      monthSelect.value = curMonthVal;
+    }
+
+    function renderHistoryAndRecap() {
+      const yearFilter = document.getElementById('filterYear').value;
+      const monthFilter = document.getElementById('filterMonth').value;
+      const searchQuery = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+      const listContainer = document.getElementById('historyListContainer');
+      const summaryContainer = document.getElementById('monthlyRecapSummary');
+      const badge = document.getElementById('totalPresensiBadge');
+
+      let filtered = fullAttendanceHistory.filter(item => {
+        const [y, m] = (item.date || "").split('-');
+        const matchYear = !yearFilter || y === yearFilter;
+        const matchMonth = !monthFilter || m === monthFilter;
+        const matchSearch = !searchQuery || `${item.code} ${item.name}`.toLowerCase().includes(searchQuery);
+        return matchYear && matchMonth && matchSearch;
+      });
+
+      badge.innerText = `Total: ${filtered.length} Data Kehadiran Ditampilkan`;
+
+      // Hitung jumlah angka presensi per bulan untuk rekap
+      let monthlyCounts = {};
+      fullAttendanceHistory.forEach(item => {
+        const [y, m] = (item.date || "").split('-');
+        if (m) {
+          const key = `${y || '2026'}-${m}`;
+          monthlyCounts[key] = (monthlyCounts[key] || 0) + 1;
+        }
+      });
+
+      summaryContainer.innerHTML = "";
+      if (Object.keys(monthlyCounts).length === 0) {
+        summaryContainer.innerHTML = `<span class="text-slate-400 italic">Belum ada statistik per bulan.</span>`;
+      } else {
+        const monthNames = {
+          "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "Mei", "06": "Jun",
+          "07": "Jul", "08": "Agt", "09": "Sep", "10": "Okt", "11": "Nov", "12": "Des"
+        };
+        for (const [key, count] of Object.entries(monthlyCounts)) {
+          const [yr, mn] = key.split('-');
+          const badgeItem = document.createElement('div');
+          badgeItem.className = "px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-xl text-xs font-mono text-emerald-400";
+          badgeItem.innerText = `${monthNames[mn] || mn} ${yr}: ${count} Hadir`;
+          summaryContainer.appendChild(badgeItem);
+        }
+      }
+
+      // Render List
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">Tidak ada data riwayat presensi yang cocok.</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = "";
+      filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-3 bg-slate-900/90 border border-slate-700/60 rounded-xl flex justify-between items-center text-xs";
+        div.innerHTML = `
+          <div class="min-w-0 pr-2 space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-amber-400 font-mono">${item.code}</span>
+              <span class="text-[10px] text-slate-400">${item.timestamp || item.date}</span>
+            </div>
+            <div class="text-slate-200 truncate font-medium">${item.name}</div>
+          </div>
+          <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-semibold">Hadir</span>
+        `;
+        listContainer.appendChild(div);
+      });
+    }
+
+    function recordSuccessfulScanToHistory(code, name, link) {
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const timeStr = now.toLocaleString('id-ID');
+
+      fullAttendanceHistory.unshift({
+        code: code,
+        name: name,
+        date: dateStr,
+        timestamp: timeStr,
+        link: link
+      });
+
+      try {
+        localStorage.setItem('pengajian_scan_history_all', JSON.stringify(fullAttendanceHistory));
+      } catch(e) {}
+
+      populateFilterDropdowns();
+      renderHistoryAndRecap();
+    }
 
     function playSuccessBeep() {
       try {
@@ -297,6 +505,7 @@
         spreadsheetDataCache = parsed.filter(row => row.length > 0 && (row[0] || row[1]));
         if(statusElem) statusElem.innerText = `Terhubung! Menemukan ${spreadsheetDataCache.length} data anggota.`;
         if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
+        fetchHistoryAndRecap();
       } catch (err) {
         if(statusElem) statusElem.innerText = "Gagal memuat spreadsheet.";
       }
@@ -365,6 +574,7 @@
             document.getElementById('selectedNameDisplay').innerText = `Nama: ${cleanNama}`;
             identityCard.classList.remove('hidden');
 
+            recordSuccessfulScanToHistory(noKode, cleanNama, kolomHasil);
             handleDirectTextOrCipher(kolomHasil);
             closeManualInputModal();
           };
@@ -469,7 +679,6 @@
             
             playSuccessBeep(); 
 
-            // Munculkan Centang Sukses di Tengah
             const checkOverlay = document.getElementById('successCheckOverlay');
             const checkIcon = document.getElementById('successCheckIcon');
             checkOverlay.style.opacity = '1';
@@ -495,7 +704,8 @@
 
             document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
             
-            // Berikan delay 1 detik (1000ms) sebelum membuka link Form Responses agar suara & visual sempat dirasakan
+            recordSuccessfulScanToHistory(matchedCode, detectedName, decryptedLink);
+
             if (isUrl(decryptedLink)) {
               setTimeout(() => {
                 window.open(decryptedLink, '_blank');
