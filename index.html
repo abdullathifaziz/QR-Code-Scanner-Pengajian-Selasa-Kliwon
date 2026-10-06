@@ -241,45 +241,15 @@
     }
 
     function parseCSV(text) {
+      const lines = text.split('\n');
       const result = [];
-      let row = [];
-      let inQuotes = false;
-      let field = '';
-      
-      // Normalisasi baris baru agar konsisten (mendukung CRLF & LF)
-      const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-      for (let i = 0; i < normalizedText.length; i++) {
-        let char = normalizedText[i];
-        let nextChar = normalizedText[i + 1];
-
-        if (char === '"') {
-          if (inQuotes && nextChar === '"') {
-            field += '"';
-            i++; // Lewati tanda kutip escaped ganda
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (char === ',' && !inQuotes) {
-          row.push(field.trim().replace(/^"|"$/g, ''));
-          field = '';
-        } else if (char === '\n' && !inQuotes) {
-          row.push(field.trim().replace(/^"|"$/g, ''));
-          result.push(row);
-          row = [];
-          field = '';
-        } else {
-          field += char;
-        }
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
+        if (cells.length > 0) result.push(cells);
       }
-      // Masukkan sisa baris terakhir jika ada
-      if (field.length > 0 || row.length > 0) {
-        row.push(field.trim().replace(/^"|"$/g, ''));
-        result.push(row);
-      }
-
-      // Filter baris kosong
-      return result.filter(r => r.some(cell => cell !== ""));
+      return result;
     }
 
     function openManualInputModal() {
