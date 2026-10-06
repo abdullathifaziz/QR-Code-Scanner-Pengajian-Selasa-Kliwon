@@ -21,6 +21,16 @@
             brand: {
               50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
             }
+          },
+          keyframes: {
+            shake: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '20%, 60%': { transform: 'translateX(-6px)' },
+              '40%, 80%': { transform: 'translateX(6px)' },
+            }
+          },
+          animation: {
+            shake: 'shake 0.4s ease-in-out',
           }
         }
       }
@@ -48,13 +58,10 @@
 
     <!-- Navigation Tabs -->
     <div class="p-1.5 m-4 bg-slate-900/60 rounded-2xl border border-slate-700/40 flex gap-1">
-      <button id="tabScanBtn" onclick="switchTab('scan')" class="flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg flex items-center justify-center gap-1.5">
+      <button id="tabScanBtn" onclick="switchTab('scan')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 bg-brand-600 text-white shadow-lg flex items-center justify-center gap-1.5">
         <span>Scan / Input</span>
       </button>
-      <button id="tabHistoryBtn" onclick="switchTab('history')" class="flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
-        <span>Riwayat (<span id="historyCountBadge">0</span>)</span>
-      </button>
-      <button id="tabGenBtn" onclick="switchTab('generate')" class="flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+      <button id="tabGenBtn" onclick="switchTab('generate')" class="flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
         <span>Buat QR</span>
       </button>
     </div>
@@ -94,7 +101,16 @@
             
             <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
               <video id="modalVideo" class="w-full max-h-[280px] object-cover" playsinline></video>
-              <div id="scanOverlayFlash" class="absolute inset-0 bg-emerald-500/30 opacity-0 pointer-events-none transition-opacity duration-200"></div>
+              
+              <!-- Indikator Centang Sukses di Tengah -->
+              <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
+                <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
+              </div>
+
+              <!-- Indikator Salah/Error -->
+              <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
+                <div class="text-rose-400 text-xs font-bold bg-slate-900/90 px-3 py-1.5 rounded-xl border border-rose-500">Password Salah / Tidak Valid</div>
+              </div>
             </div>
 
             <div id="lastScannedInfo" class="p-2.5 bg-slate-800/90 rounded-xl text-xs text-amber-400 font-mono truncate">
@@ -167,19 +183,6 @@
         </div>
       </div>
 
-      <!-- SECTION RIWAYAT LOKAL -->
-      <div id="sectionHistory" class="hidden space-y-3">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Daftar Scan Sesi Ini</span>
-          <button onclick="clearHistory()" class="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 rounded-lg text-[10px] font-semibold transition">
-            Hapus Riwayat
-          </button>
-        </div>
-        <div id="historyListContainer" class="max-h-[340px] overflow-y-auto space-y-2 pr-1">
-          <div class="text-center py-6 text-xs text-slate-500 italic">Belum ada data scan pada sesi ini.</div>
-        </div>
-      </div>
-
       <!-- SECTION GENERATOR (BULK & ZIP SUPPORT) -->
       <div id="sectionGenerate" class="hidden space-y-4">
         <div>
@@ -235,33 +238,55 @@
     let localStream = null;
     let animFrameId = null;
     let spreadsheetDataCache = [];
-    let scanHistory = [];
     let lastScannedCodeTime = 0; 
     let activeCameraPassword = ""; 
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('pengajian_scan_history');
-      if (saved) {
-        try { scanHistory = JSON.parse(saved); } catch(e){ scanHistory = []; }
-      }
-      updateHistoryUI();
       fetchSpreadsheetData();
     });
 
+    // Audio Suara Nyaring Benar (Denting Tinggi Ganda)
     function playSuccessBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.15);
+        const now = audioCtx.currentTime;
+        
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(659.25, now); // E5
+        osc1.frequency.setValueAtTime(880, now + 0.1); // A5
+        
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+        
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.25);
+      } catch(e) {}
+    }
+
+    // Audio Suara Nyaring Salah (Dengung Rendah Ganda)
+    function playErrorBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+        
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(180, now);
+        osc1.frequency.setValueAtTime(120, now + 0.15);
+        
+        gain1.gain.setValueAtTime(0.25, now);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+        
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.3);
       } catch(e) {}
     }
 
@@ -348,7 +373,6 @@
             document.getElementById('selectedNameDisplay').innerText = `Nama: ${cleanNama}`;
             identityCard.classList.remove('hidden');
 
-            addHistoryRecord(noKode, cleanNama, kolomHasil);
             handleDirectTextOrCipher(kolomHasil);
             closeManualInputModal();
           };
@@ -389,62 +413,6 @@
         btnArea.innerHTML = `<button onclick="copyToClipboard('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 text-slate-200 rounded-xl text-xs">📋 Salin Teks Pesan</button>`;
       }
       document.getElementById('decryptedResult').classList.remove('hidden');
-    }
-
-    function addHistoryRecord(code, name, resultLink) {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
-      if (scanHistory.length > 0 && scanHistory[0].code === code && (now - new Date(scanHistory[0].timestamp)) < 5000) {
-        return;
-      }
-
-      scanHistory.unshift({
-        code: code,
-        name: name || "QR Mandiri / Tamu",
-        link: resultLink,
-        timestamp: now.toISOString(),
-        timeFormatted: timeStr
-      });
-
-      if (scanHistory.length > 100) scanHistory.pop();
-      localStorage.setItem('pengajian_scan_history', JSON.stringify(scanHistory));
-      updateHistoryUI();
-    }
-
-    function updateHistoryUI() {
-      const container = document.getElementById('historyListContainer');
-      document.getElementById('historyCountBadge').innerText = scanHistory.length;
-
-      if (scanHistory.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">Belum ada data scan pada sesi ini.</div>`;
-        return;
-      }
-
-      container.innerHTML = "";
-      scanHistory.forEach((item) => {
-        const div = document.createElement('div');
-        div.className = "p-3 bg-slate-800/90 border border-slate-700/60 rounded-xl flex justify-between items-center text-xs";
-        div.innerHTML = `
-          <div class="min-w-0 pr-2 space-y-0.5">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-amber-400 font-mono">${item.code}</span>
-              <span class="text-[10px] text-slate-400">${item.timeFormatted}</span>
-            </div>
-            <div class="text-slate-200 truncate font-medium">${item.name}</div>
-          </div>
-          <a href="${item.link}" target="_blank" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-semibold flex-shrink-0">
-            Form Res
-          </a>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function clearHistory() {
-      scanHistory = [];
-      localStorage.removeItem('pengajian_scan_history');
-      updateHistoryUI();
     }
 
     // --- VALIDASI PASSWORD DI AWAL SEBELUM KAMERA BUKA ---
@@ -503,21 +471,24 @@
         if (code && code.data && (now - lastScannedCodeTime > 2500)) {
           lastScannedCodeTime = now;
 
+          const box = document.getElementById('cameraContainerBox');
+
           try {
-            // Coba dekripsi QR code menggunakan password yang diinput petugas di awal
             const decryptedLink = await decryptData(code.data, activeCameraPassword);
             
             playSuccessBeep(); 
 
-            // Efek visual flash hijau
-            const box = document.getElementById('cameraContainerBox');
-            const flash = document.getElementById('scanOverlayFlash');
-            box.classList.add('border-emerald-400', 'scale-[1.01]');
-            flash.style.opacity = '1';
+            // Efek Centang Sukses di Tengah
+            const checkOverlay = document.getElementById('successCheckOverlay');
+            const checkIcon = document.getElementById('successCheckIcon');
+            checkOverlay.style.opacity = '1';
+            checkIcon.classList.remove('scale-50');
+            checkIcon.classList.add('scale-100');
             setTimeout(() => {
-              box.classList.remove('border-emerald-400', 'scale-[1.01]');
-              flash.style.opacity = '0';
-            }, 300);
+              checkOverlay.style.opacity = '0';
+              checkIcon.classList.remove('scale-100');
+              checkIcon.classList.add('scale-50');
+            }, 500);
 
             let detectedName = "Jamaah Terverifikasi";
             let matchedCode = "QR Valid";
@@ -532,17 +503,24 @@
 
             document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
             
-            // Catat ke Riwayat Sesi
-            addHistoryRecord(matchedCode, detectedName, decryptedLink);
-
-            // Kirim presensi secara otomatis di background (buka link form responses secara tersembunyi/tab baru sekilas)
             if (isUrl(decryptedLink)) {
               window.open(decryptedLink, '_blank');
             }
 
           } catch (err) {
-            // Jika password salah atau QR tidak valid dengan password tersebut
+            playErrorBeep();
+
+            // Efek Bergoyang (Shake) & Border Merah jika Password Salah
+            box.classList.add('animate-shake', 'border-rose-500');
+            const errOverlay = document.getElementById('errorShakeOverlay');
+            errOverlay.style.opacity = '1';
+
             document.getElementById('lastScannedInfo').innerText = `❌ Password Salah / QR Tidak Valid!`;
+
+            setTimeout(() => {
+              box.classList.remove('animate-shake', 'border-rose-500');
+              errOverlay.style.opacity = '0';
+            }, 600);
           }
         }
       }
@@ -581,12 +559,10 @@
     function switchTab(tab) {
       stopCamera();
       document.getElementById('sectionScan').classList.toggle('hidden', tab !== 'scan');
-      document.getElementById('sectionHistory').classList.toggle('hidden', tab !== 'history');
       document.getElementById('sectionGenerate').classList.toggle('hidden', tab !== 'generate');
 
-      document.getElementById('tabScanBtn').className = tab === 'scan' ? "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" : "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl text-slate-400";
-      document.getElementById('tabHistoryBtn').className = tab === 'history' ? "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" : "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl text-slate-400";
-      document.getElementById('tabGenBtn').className = tab === 'generate' ? "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" : "flex-1 py-2.5 px-3 text-xs font-semibold rounded-xl text-slate-400";
+      document.getElementById('tabScanBtn').className = tab === 'scan' ? "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" : "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl text-slate-400";
+      document.getElementById('tabGenBtn').className = tab === 'generate' ? "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl bg-brand-600 text-white shadow-lg" : "flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl text-slate-400";
     }
 
     async function getKey(password, salt) {
