@@ -10,7 +10,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-  <!-- Library JSZip & FileSaver untuk membuat file ZIP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script>
@@ -63,11 +62,18 @@
     <div class="p-6 pt-2">
       <!-- SECTION SCANNER & INPUT MANUAL -->
       <div id="sectionScan" class="space-y-4">
-        <div class="space-y-2.5">
-          <button onclick="startCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-2xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2">
+        
+        <!-- Kotak Password Kamera di Awal -->
+        <div class="p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl space-y-3 shadow-lg">
+          <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">🔑 Password Kunci Scanner:</label>
+          <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+          
+          <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
             <span>📷 Buka Kamera Pemindai (Kontinu)</span>
           </button>
-        
+        </div>
+
+        <div class="space-y-2.5">
           <label class="w-full py-3 px-4 bg-slate-700/50 hover:bg-slate-700 text-slate-300 font-medium rounded-2xl border border-slate-600/50 cursor-pointer transition flex items-center justify-center gap-2 text-xs">
             <span>Upload dari Galeri Gambar</span>
             <input type="file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
@@ -82,12 +88,12 @@
         <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
           <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
             <div class="flex justify-between items-center">
-              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Mode Scan Kontinu (Beruntun)</h3>
-              <span id="scanStatusIndicator" class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Aktif</span>
+              <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Aktif</span>
             </div>
             
             <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-              <video id="modalVideo" class="w-full max-h-[300px] object-cover" playsinline></video>
+              <video id="modalVideo" class="w-full max-h-[280px] object-cover" playsinline></video>
               <div id="scanOverlayFlash" class="absolute inset-0 bg-emerald-500/30 opacity-0 pointer-events-none transition-opacity duration-200"></div>
             </div>
 
@@ -121,7 +127,6 @@
               </div>
 
               <div id="spreadsheetStatus" class="text-[11px] text-slate-400 italic">Memuat data dari Google Spreadsheet...</div>
-
               <div id="spreadsheetResultList" class="max-h-56 overflow-y-auto space-y-2 pr-1"></div>
             </div>
 
@@ -133,7 +138,7 @@
 
         <canvas id="fileCanvas" class="hidden"></canvas>
         
-        <!-- Decrypt / Result Area -->
+        <!-- Decrypt / Result Area (Untuk Upload Galeri / Manual) -->
         <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
           <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
             <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
@@ -198,9 +203,6 @@
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
             <span id="qrCountLabel" class="text-xs font-semibold text-emerald-400"></span>
             <button id="btnDownloadZip" onclick="downloadAllQRAsZip()" class="w-full sm:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition shadow-md flex items-center justify-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
               <span>Download Semua (.ZIP)</span>
             </button>
           </div>
@@ -234,26 +236,26 @@
     let animFrameId = null;
     let spreadsheetDataCache = [];
     let scanHistory = [];
-    let lastScannedCodeTime = 0; // Debounce agar tidak scan beruntun terlalu cepat pada QR yang sama
+    let lastScannedCodeTime = 0; 
+    let activeCameraPassword = ""; 
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
-    // Muat riwayat dari localStorage saat halaman dibuka
     window.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('pengajian_scan_history');
       if (saved) {
         try { scanHistory = JSON.parse(saved); } catch(e){ scanHistory = []; }
       }
       updateHistoryUI();
+      fetchSpreadsheetData();
     });
 
-    // AUDIO BEEP HALUS (Ide 5)
     function playSuccessBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Nada D5
+        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
         oscillator.connect(gainNode);
@@ -263,27 +265,23 @@
       } catch(e) {}
     }
 
-    // FETCH DATA SPREADSHEET
     async function fetchSpreadsheetData(forceReload = false) {
       const statusElem = document.getElementById('spreadsheetStatus');
       if (spreadsheetDataCache.length > 0 && !forceReload) {
-        filterSpreadsheetData();
+        if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
         return;
       }
 
-      statusElem.innerText = "Mengambil data lengkap dari Google Spreadsheet...";
       try {
         const response = await fetch(SPREADSHEET_CSV_URL);
         const csvText = await response.text();
-        
         let parsed = parseCSV(csvText);
-        if (parsed.length > 0) parsed.shift(); // Lewati header
-
+        if (parsed.length > 0) parsed.shift(); 
         spreadsheetDataCache = parsed.filter(row => row.length > 0 && (row[0] || row[1]));
-        statusElem.innerText = `Terhubung! Menemukan ${spreadsheetDataCache.length} data anggota.`;
-        filterSpreadsheetData();
+        if(statusElem) statusElem.innerText = `Terhubung! Menemukan ${spreadsheetDataCache.length} data anggota.`;
+        if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
       } catch (err) {
-        statusElem.innerText = "Gagal memuat spreadsheet. Pastikan spreadsheet memiliki akses publik ('Anyone with link').";
+        if(statusElem) statusElem.innerText = "Gagal memuat spreadsheet.";
       }
     }
 
@@ -311,6 +309,7 @@
     function filterSpreadsheetData() {
       const query = document.getElementById('manualCodeSearchInput').value.toLowerCase().trim();
       const listContainer = document.getElementById('spreadsheetResultList');
+      if(!listContainer) return;
       listContainer.innerHTML = "";
 
       if (spreadsheetDataCache.length === 0) return;
@@ -385,19 +384,17 @@
       const btnArea = document.getElementById('actionBtnArea');
 
       if (detectedUrl) {
-        btnArea.innerHTML = `<a href="${detectedUrl}" target="_blank" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2">Buka Link Halaman (Kirim Presensi)</a>`;
+        btnArea.innerHTML = `<a href="${detectedUrl}" target="_blank" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-2">Buka Link Form Responses</a>`;
       } else {
         btnArea.innerHTML = `<button onclick="copyToClipboard('${plainText.replace(/'/g, "\\'")}')" class="w-full py-2.5 bg-slate-700 text-slate-200 rounded-xl text-xs">📋 Salin Teks Pesan</button>`;
       }
       document.getElementById('decryptedResult').classList.remove('hidden');
     }
 
-    // --- RIWAYAT PRESENSI LOKAL (Ide 2) ---
     function addHistoryRecord(code, name, resultLink) {
       const now = new Date();
       const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
-      // Cek apakah sudah ada di riwayat teratas agar tidak duplikat instan
       if (scanHistory.length > 0 && scanHistory[0].code === code && (now - new Date(scanHistory[0].timestamp)) < 5000) {
         return;
       }
@@ -410,7 +407,7 @@
         timeFormatted: timeStr
       });
 
-      if (scanHistory.length > 100) scanHistory.pop(); // Batasi max 100 riwayat
+      if (scanHistory.length > 100) scanHistory.pop();
       localStorage.setItem('pengajian_scan_history', JSON.stringify(scanHistory));
       updateHistoryUI();
     }
@@ -425,7 +422,7 @@
       }
 
       container.innerHTML = "";
-      scanHistory.forEach((item, idx) => {
+      scanHistory.forEach((item) => {
         const div = document.createElement('div');
         div.className = "p-3 bg-slate-800/90 border border-slate-700/60 rounded-xl flex justify-between items-center text-xs";
         div.innerHTML = `
@@ -437,7 +434,7 @@
             <div class="text-slate-200 truncate font-medium">${item.name}</div>
           </div>
           <a href="${item.link}" target="_blank" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-semibold flex-shrink-0">
-            Buka Link
+            Form Res
           </a>
         `;
         container.appendChild(div);
@@ -450,7 +447,17 @@
       updateHistoryUI();
     }
 
-    // --- SCANNER KONTINU (Ide 1 & Ide 5) ---
+    // --- VALIDASI PASSWORD DI AWAL SEBELUM KAMERA BUKA ---
+    function requestStartCamera() {
+      const passInput = document.getElementById('cameraPasswordInput').value.trim();
+      if (!passInput) {
+        showCustomDialog('warning', 'Password Kosong', 'Harap masukkan password terlebih dahulu sebelum membuka kamera.');
+        return;
+      }
+      activeCameraPassword = passInput;
+      startCamera();
+    }
+
     async function startCamera() {
       const modal = document.getElementById('cameraModal');
       const video = document.getElementById('modalVideo');
@@ -480,7 +487,7 @@
       document.getElementById('cameraModal').classList.add('hidden');
     }
 
-    function scanFrameContinuous() {
+    async function scanFrameContinuous() {
       const video = document.getElementById('modalVideo');
       const canvas = document.getElementById('fileCanvas');
       const ctx = canvas.getContext('2d');
@@ -495,32 +502,48 @@
         const now = Date.now();
         if (code && code.data && (now - lastScannedCodeTime > 2500)) {
           lastScannedCodeTime = now;
-          playSuccessBeep(); // Suara sukses halus (Ide 5)
 
-          // Efek visual flash hijau pada border kamera
-          const box = document.getElementById('cameraContainerBox');
-          const flash = document.getElementById('scanOverlayFlash');
-          box.classList.add('border-emerald-400', 'scale-[1.01]');
-          flash.style.opacity = '1';
-          setTimeout(() => {
-            box.classList.remove('border-emerald-400', 'scale-[1.01]');
-            flash.style.opacity = '0';
-          }, 300);
+          try {
+            // Coba dekripsi QR code menggunakan password yang diinput petugas di awal
+            const decryptedLink = await decryptData(code.data, activeCameraPassword);
+            
+            playSuccessBeep(); 
 
-          // Deteksi info nama/kode dari spreadsheet jika ada yang cocok dengan cipher/link
-          let detectedName = "QR Berhasil Di-scan";
-          let matchedCode = "QR Valid";
-          
-          spreadsheetDataCache.forEach(row => {
-            const hasilCol = row[5] ? row[5].replace(/^"|"$/g, '').trim() : "";
-            if (hasilCol === code.data) {
-              matchedCode = (row[0] || "").replace(/^"|"$/g, '').trim();
-              detectedName = (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' ');
+            // Efek visual flash hijau
+            const box = document.getElementById('cameraContainerBox');
+            const flash = document.getElementById('scanOverlayFlash');
+            box.classList.add('border-emerald-400', 'scale-[1.01]');
+            flash.style.opacity = '1';
+            setTimeout(() => {
+              box.classList.remove('border-emerald-400', 'scale-[1.01]');
+              flash.style.opacity = '0';
+            }, 300);
+
+            let detectedName = "Jamaah Terverifikasi";
+            let matchedCode = "QR Valid";
+            
+            spreadsheetDataCache.forEach(row => {
+              const hasilCol = row[5] ? row[5].replace(/^"|"$/g, '').trim() : "";
+              if (hasilCol === decryptedLink) {
+                matchedCode = (row[0] || "").replace(/^"|"$/g, '').trim();
+                detectedName = (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' ');
+              }
+            });
+
+            document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
+            
+            // Catat ke Riwayat Sesi
+            addHistoryRecord(matchedCode, detectedName, decryptedLink);
+
+            // Kirim presensi secara otomatis di background (buka link form responses secara tersembunyi/tab baru sekilas)
+            if (isUrl(decryptedLink)) {
+              window.open(decryptedLink, '_blank');
             }
-          });
 
-          document.getElementById('lastScannedInfo').innerText = `✓ Terdeteksi: [${matchedCode}] ${detectedName}`;
-          addHistoryRecord(matchedCode, detectedName, code.data);
+          } catch (err) {
+            // Jika password salah atau QR tidak valid dengan password tersebut
+            document.getElementById('lastScannedInfo').innerText = `❌ Password Salah / QR Tidak Valid!`;
+          }
         }
       }
       animFrameId = requestAnimationFrame(scanFrameContinuous);
@@ -598,7 +621,7 @@
         const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, data);
         return new TextDecoder().decode(decrypted);
       } catch (e) {
-        throw new Error("Password salah! Tidak dapat membuka isi data.");
+        throw new Error("Password salah!");
       }
     }
 
