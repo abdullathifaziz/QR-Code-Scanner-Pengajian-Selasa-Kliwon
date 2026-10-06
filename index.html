@@ -101,9 +101,9 @@
             
             <div class="space-y-3">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Cari Kode / Nama / Keterangan:</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Cari Kode / Nama Anggota:</label>
                 <div class="flex gap-2">
-                  <input type="text" id="manualCodeSearchInput" onkeyup="filterSpreadsheetData()" placeholder="Ketik nomor kode atau keyword..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+                  <input type="text" id="manualCodeSearchInput" onkeyup="filterSpreadsheetData()" placeholder="Ketik nomor kode atau nama..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
                   <button onclick="fetchSpreadsheetData(true)" title="Muat ulang data dari Spreadsheet" class="px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs">
                     🔄
                   </button>
@@ -216,7 +216,6 @@
     let localStream = null;
     let animFrameId = null;
     let spreadsheetDataCache = [];
-    // Mengarahkan langsung ke sheet "DATA ANGGOTA" agar seluruh data termuat utuh
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     // FETCH DATA SPREADSHEET
@@ -232,9 +231,13 @@
         const response = await fetch(SPREADSHEET_CSV_URL);
         const csvText = await response.text();
         
-        spreadsheetDataCache = parseCSV(csvText);
-        // Memfilter baris yang valid (memiliki kode atau nama)
-        spreadsheetDataCache = spreadsheetDataCache.filter(row => row.length > 0 && (row[0] || row[1]));
+        let parsed = parseCSV(csvText);
+        // Lewati baris pertama karena merupakan header (NO KODE, NAMA DI KERTAS, dll)
+        if (parsed.length > 0) {
+          parsed.shift();
+        }
+
+        spreadsheetDataCache = parsed.filter(row => row.length > 0 && (row[0] || row[1]));
 
         statusElem.innerText = `Terhubung! Menemukan ${spreadsheetDataCache.length} data anggota.`;
         filterSpreadsheetData();
@@ -250,9 +253,7 @@
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Regex untuk mengurai baris CSV secara aman terhadap tanda kutip ganda
         const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"\vert{}"$/g, '').trim());
-        
         if (cells.some(cell => cell !== "")) {
           result.push(cells);
         }
@@ -278,20 +279,21 @@
 
       let matchCount = 0;
       spreadsheetDataCache.forEach((row, index) => {
-        const rowString = row.join(" ").toLowerCase();
+        const noKode = row[0] || "";
+        const nama = row[1] || "";
+        const rowString = `${noKode} ${nama}`.toLowerCase();
         
         if (!query || rowString.includes(query)) {
           matchCount++;
           const card = document.createElement('div');
           card.className = "p-3 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/60 rounded-xl cursor-pointer transition flex justify-between items-center text-xs";
-          
-          const mainTitle = row[0] || `Data #${index + 1}`;
-          const subTitle = row.slice(1, 5).filter(Boolean).join(" | ");
+
+          const cleanNama = nama.replace(/\+/g, ' ');
 
           card.innerHTML = `
             <div class="min-w-0 pr-2">
-              <div class="font-bold text-amber-400 font-mono truncate">${mainTitle}</div>
-              ${subTitle ? `<div class="text-[11px] text-slate-400 truncate mt-0.5">${subTitle}</div>` : ''}
+              <div class="font-bold text-amber-400 font-mono">${noKode}</div>
+              <div class="text-xs text-slate-200 font-medium truncate mt-0.5">${cleanNama}</div>
             </div>
             <button class="px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-[10px] font-semibold flex-shrink-0">
               Pilih
@@ -299,8 +301,6 @@
           `;
 
           card.onclick = () => {
-            const noKode = row[0] || "-"; // Nomor Kode (Kolom A)
-            const nama = row[1] || "";    // Nama (Kolom B)
             const kolomHasil = row[5] ? row[5].trim() : ""; // Kolom F (HASIL)
             
             if (!kolomHasil) {
@@ -310,7 +310,7 @@
 
             const identityCard = document.getElementById('selectedIdentityCard');
             document.getElementById('selectedCodeDisplay').innerText = `Kode: ${noKode}`;
-            document.getElementById('selectedNameDisplay').innerText = nama ? `Nama: ${nama}` : "";
+            document.getElementById('selectedNameDisplay').innerText = `Nama: ${cleanNama}`;
             identityCard.classList.remove('hidden');
 
             handleDirectTextOrCipher(kolomHasil);
@@ -322,7 +322,7 @@
       });
 
       if (matchCount === 0) {
-        listContainer.innerHTML = `<div class="text-center py-4 text-xs text-slate-500">Tidak ada kode atau data yang cocok.</div>`;
+        listContainer.innerHTML = `<div class="text-center py-4 text-xs text-slate-500">Tidak ada kode atau nama yang cocok.</div>`;
       }
     }
 
