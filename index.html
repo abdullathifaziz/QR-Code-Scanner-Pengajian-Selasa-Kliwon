@@ -154,7 +154,7 @@
 
         <canvas id="fileCanvas" class="hidden"></canvas>
         
-        <!-- Decrypt / Result Area (Untuk Upload Galeri / Manual) -->
+        <!-- Decrypt / Result Area -->
         <div id="decryptArea" class="hidden mt-6 p-4 bg-slate-900/80 border border-amber-500/30 rounded-2xl space-y-3.5">
           <div id="decryptHeader" class="flex items-center gap-2 text-amber-400 font-semibold text-xs uppercase tracking-wider">
             <span>🔒 QR Code / Kode Terenkripsi Terdeteksi</span>
@@ -246,21 +246,17 @@
       fetchSpreadsheetData();
     });
 
-    // Audio Suara Nyaring Benar (Denting Tinggi Ganda)
     function playSuccessBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
-        
         const osc1 = audioCtx.createOscillator();
         const gain1 = audioCtx.createGain();
         osc1.type = 'triangle';
-        osc1.frequency.setValueAtTime(659.25, now); // E5
-        osc1.frequency.setValueAtTime(880, now + 0.1); // A5
-        
+        osc1.frequency.setValueAtTime(659.25, now); 
+        osc1.frequency.setValueAtTime(880, now + 0.1); 
         gain1.gain.setValueAtTime(0.2, now);
         gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-        
         osc1.connect(gain1);
         gain1.connect(audioCtx.destination);
         osc1.start(now);
@@ -268,21 +264,17 @@
       } catch(e) {}
     }
 
-    // Audio Suara Nyaring Salah (Dengung Rendah Ganda)
     function playErrorBeep() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const now = audioCtx.currentTime;
-        
         const osc1 = audioCtx.createOscillator();
         const gain1 = audioCtx.createGain();
         osc1.type = 'sawtooth';
         osc1.frequency.setValueAtTime(180, now);
         osc1.frequency.setValueAtTime(120, now + 0.15);
-        
         gain1.gain.setValueAtTime(0.25, now);
         gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
-        
         osc1.connect(gain1);
         gain1.connect(audioCtx.destination);
         osc1.start(now);
@@ -415,7 +407,6 @@
       document.getElementById('decryptedResult').classList.remove('hidden');
     }
 
-    // --- VALIDASI PASSWORD DI AWAL SEBELUM KAMERA BUKA ---
     function requestStartCamera() {
       const passInput = document.getElementById('cameraPasswordInput').value.trim();
       if (!passInput) {
@@ -468,7 +459,7 @@
         const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         const now = Date.now();
-        if (code && code.data && (now - lastScannedCodeTime > 2500)) {
+        if (code && code.data && (now - lastScannedCodeTime > 3000)) {
           lastScannedCodeTime = now;
 
           const box = document.getElementById('cameraContainerBox');
@@ -478,17 +469,18 @@
             
             playSuccessBeep(); 
 
-            // Efek Centang Sukses di Tengah
+            // Munculkan Centang Sukses di Tengah
             const checkOverlay = document.getElementById('successCheckOverlay');
             const checkIcon = document.getElementById('successCheckIcon');
             checkOverlay.style.opacity = '1';
             checkIcon.classList.remove('scale-50');
             checkIcon.classList.add('scale-100');
+            
             setTimeout(() => {
               checkOverlay.style.opacity = '0';
               checkIcon.classList.remove('scale-100');
               checkIcon.classList.add('scale-50');
-            }, 500);
+            }, 800);
 
             let detectedName = "Jamaah Terverifikasi";
             let matchedCode = "QR Valid";
@@ -503,14 +495,16 @@
 
             document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
             
+            // Berikan delay 1 detik (1000ms) sebelum membuka link Form Responses agar suara & visual sempat dirasakan
             if (isUrl(decryptedLink)) {
-              window.open(decryptedLink, '_blank');
+              setTimeout(() => {
+                window.open(decryptedLink, '_blank');
+              }, 1000);
             }
 
           } catch (err) {
             playErrorBeep();
 
-            // Efek Bergoyang (Shake) & Border Merah jika Password Salah
             box.classList.add('animate-shake', 'border-rose-500');
             const errOverlay = document.getElementById('errorShakeOverlay');
             errOverlay.style.opacity = '1';
