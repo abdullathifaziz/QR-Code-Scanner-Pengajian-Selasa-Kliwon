@@ -105,8 +105,13 @@
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
                 <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
                 
-                <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
-                  <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
+                <!-- Popup Berhasil Scan (Tampil di atas kamera selama 3 detik) -->
+                <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
+                  <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg mb-3 animate-bounce">✓</div>
+                  <h4 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
+                  <div id="popupCodeText" class="text-xs font-mono text-amber-400 font-bold"></div>
+                  <div id="popupNameText" class="text-sm text-white font-semibold mt-1 text-center"></div>
+                  <p class="text-[10px] text-slate-400 mt-3 italic">Membuka tautan dalam 3 detik...</p>
                 </div>
 
                 <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
@@ -262,11 +267,11 @@
     let activeVideoTrack = null;
     let flashState = false;
     let barcodeDetector = null;
+    let isProcessingScan = false;
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchSpreadsheetData();
-      // Inisialisasi Native BarcodeDetector jika didukung browser
       if ('BarcodeDetector' in window) {
         BarcodeDetector.getSupportedFormats().then(supportedFormats => {
           if (supportedFormats.includes('qr_code')) {
@@ -451,6 +456,7 @@
       const modal = document.getElementById('cameraModal');
       const video = document.getElementById('modalVideo');
       modal.classList.remove('hidden');
+      isProcessingScan = false;
 
       document.getElementById('zoomRange').value = "1";
       document.getElementById('zoomLevelVal').innerText = "1x";
@@ -536,19 +542,17 @@
       document.getElementById('cameraModal').classList.add('hidden');
     }
 
-    // Menggunakan pemindaian super cepat berbasis native BarcodeDetector / Canvas
     function startFastScanningLoop() {
       const video = document.getElementById('modalVideo');
       const canvas = document.getElementById('fileCanvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       scanInterval = setInterval(async () => {
-        if (!localStream || video.paused || video.ended) return;
+        if (!localStream || video.paused || video.ended || isProcessingScan) return;
 
         let scannedText = null;
 
         try {
-          // Metode 1: Menggunakan BarcodeDetector Bawaan Browser (Sangat Cepat & Hardware-Accelerated)
           if (barcodeDetector) {
             const codes = await barcodeDetector.detect(video);
             if (codes && codes.length > 0) {
@@ -557,9 +561,8 @@
           }
         } catch (e) {}
 
-        // Metode 2: Fallback ke jsQR jika BarcodeDetector belum siap/tidak ada
         if (!scannedText && video.readyState === video.HAVE_ENOUGH_DATA) {
-          canvas.width = 320; // Ukuran kecil agar komputasi instan tanpa lag
+          canvas.width = 320;
           canvas.height = 240;
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -573,34 +576,24 @@
           const now = Date.now();
           if (now - lastScannedCodeTime > 2000) {
             lastScannedCodeTime = now;
-            const box = document.getElementById('cameraContainerBox');
+            isProcessingScan = true; // Kunci sementara agar tidak double scan
 
             try {
               const decryptedLink = await decryptData(scannedText, activeCameraPassword);
               if (decryptedLink) {
-                handleSuccessfulScan(decryptedLink, box);
+                handleSuccessfulScan(decryptedLink);
               }
             } catch (err) {
-              handleFailedScan(box);
+              handleFailedScan();
+              isProcessingScan = false;
             }
           }
         }
-      }, 100); // Cek setiap 100 milidetik (sangat responsif tanpa membebani CPU)
+      }, 100);
     }
 
-    function handleSuccessfulScan(decryptedLink, box) {
+    function handleSuccessfulScan(decryptedLink) {
       playSuccessBeep(); 
-      const checkOverlay = document.getElementById('successCheckOverlay');
-      const checkIcon = document.getElementById('successCheckIcon');
-      checkOverlay.style.opacity = '1';
-      checkIcon.classList.remove('scale-50');
-      checkIcon.classList.add('scale-100');
-      
-      setTimeout(() => {
-        checkOverlay.style.opacity = '0';
-        checkIcon.classList.remove('scale-100');
-        checkIcon.classList.add('scale-50');
-      }, 700);
 
       let detectedName = "Jamaah Terverifikasi";
       let matchedCode = "QR Valid";
@@ -613,17 +606,31 @@
         }
       });
 
+      // Tampilkan popup informasi nomor kode dan nama jamaah selama 3 detik
+      document.getElementById('popupCodeText').innerText = `Nomor Kode: ${matchedCode}`;
+      document.getElementById('popupNameText').innerText = detectedName;
+
+      const popupOverlay = document.getElementById('successPopupOverlay');
+      popupOverlay.style.opacity = '1';
+      popupOverlay.style.pointerEvents = 'auto';
+
       document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
-      
-      if (isUrl(decryptedLink)) {
-        setTimeout(() => {
+
+      // Jeda 3 detik sebelum otomatis membuka tautan link
+      setTimeout(() => {
+        popupOverlay.style.opacity = '0';
+        popupOverlay.style.pointerEvents = 'none';
+        stopCamera();
+
+        if (isUrl(decryptedLink)) {
           window.open(decryptedLink, '_blank');
-        }, 800);
-      }
+        }
+      }, 3000);
     }
 
-    function handleFailedScan(box) {
+    function handleFailedScan() {
       playErrorBeep();
+      const box = document.getElementById('cameraContainerBox');
       box.classList.add('animate-shake', 'border-rose-500');
       const errOverlay = document.getElementById('errorShakeOverlay');
       errOverlay.style.opacity = '1';
