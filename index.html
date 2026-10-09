@@ -79,7 +79,7 @@
             <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
             
             <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-              <span>📷 Buka Kamera Pemindai (Kontinu)</span>
+              <span>📷 Buka Kamera Pemindai (Super Cepat)</span>
             </button>
           </div>
 
@@ -94,16 +94,16 @@
             </button>
           </div>
           
-          <!-- Camera Modal Overlay (Kontinu Mode dengan Zoom & Flash) -->
+          <!-- Camera Modal Overlay -->
           <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
             <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
               <div class="flex justify-between items-center">
                 <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
-                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Aktif</span>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Turbo Aktif</span>
               </div>
               
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline></video>
+                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted></video>
                 
                 <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
@@ -114,7 +114,7 @@
                 </div>
               </div>
 
-              <!-- Kontrol Tambahan: Zoom & Flash (Senter) -->
+              <!-- Kontrol Zoom & Flash -->
               <div class="grid grid-cols-2 gap-2 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
                 <div class="flex flex-col justify-center px-1">
                   <div class="flex justify-between text-[10px] text-slate-400 mb-1">
@@ -443,25 +443,28 @@
       const video = document.getElementById('modalVideo');
       modal.classList.remove('hidden');
 
-      // Reset slider zoom & status flash
       document.getElementById('zoomRange').value = "1";
       document.getElementById('zoomLevelVal').innerText = "1x";
       flashState = false;
       document.getElementById('flashBtnText').innerText = "Flash: Mati";
 
       try {
+        // Menggunakan resolusi ideal agar proses pemindaian pixel lebih ringan & cepat
         localStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment', advanced: [{ focusMode: 'continuous' }] } 
+          video: { 
+            facingMode: 'environment', 
+            width: { ideal: 1280 }, 
+            height: { ideal: 720 },
+            advanced: [{ focusMode: 'continuous' }] 
+          } 
         });
         video.srcObject = localStream;
         video.setAttribute("playsinline", true);
         await video.play();
 
-        // Ambil track video untuk kontrol zoom & torch (flash)
         activeVideoTrack = localStream.getVideoTracks()[0];
         trackCapabilities = activeVideoTrack.getCapabilities ? activeVideoTrack.getCapabilities() : {};
 
-        // Atur range slider zoom jika hardware mendukung
         const zoomSlider = document.getElementById('zoomRange');
         if (trackCapabilities.zoom) {
           zoomSlider.min = trackCapabilities.zoom.min;
@@ -471,7 +474,7 @@
           document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
         }
 
-        scanFrameContinuous();
+        scanFrameTurbo();
       } catch (err) {
         showCustomDialog('error', 'Gagal Akses Kamera', err.message);
         stopCamera();
@@ -482,11 +485,8 @@
       document.getElementById('zoomLevelVal').innerText = `${val}x`;
       if (activeVideoTrack && activeVideoTrack.applyConstraints) {
         try {
-          await activeVideoTrack.applyConstraints({
-            advanced: [{ zoom: parseFloat(val) }]
-          });
+          await activeVideoTrack.applyConstraints({ advanced: [{ zoom: parseFloat(val) }] });
         } catch (e) {
-          // Fallback visual CSS zoom jika hardware constraint tidak diizinkan browser
           const video = document.getElementById('modalVideo');
           video.style.transform = `scale(${val})`;
         }
@@ -500,16 +500,14 @@
       if (!activeVideoTrack) return;
       try {
         flashState = !flashState;
-        await activeVideoTrack.applyConstraints({
-          advanced: [{ torch: flashState }]
-        });
+        await activeVideoTrack.applyConstraints({ advanced: [{ torch: flashState }] });
         document.getElementById('flashBtnText').innerText = flashState ? "Flash: Nyala" : "Flash: Mati";
         document.getElementById('flashToggleBtn').className = flashState ? 
           "w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm" : 
           "w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm";
       } catch (err) {
         showCustomDialog('info', 'Flash Tidak Didukung', 'Perangkat atau browser Anda tidak mendukung kontrol flash otomatis melalui web.');
-        flashState = !flashState; // kembalikan state
+        flashState = !flashState;
       }
     }
 
@@ -530,77 +528,92 @@
       document.getElementById('cameraModal').classList.add('hidden');
     }
 
-    async function scanFrameContinuous() {
+    // Fungsi Turbo Scan: Mengoptimalkan ukuran kanvas agar pembacaan QR instan tanpa lag
+    function scanFrameTurbo() {
       const video = document.getElementById('modalVideo');
       const canvas = document.getElementById('fileCanvas');
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
+        // Reduksi ukuran frame secara proporsional untuk mempercepat parsing jsQR
+        const scaleFactor = 0.65; 
+        canvas.width = video.videoWidth * scaleFactor;
+        canvas.height = video.videoHeight * scaleFactor;
+
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert"
+        });
 
         const now = Date.now();
-        if (code && code.data && (now - lastScannedCodeTime > 3000)) {
+        if (code && code.data && (now - lastScannedCodeTime > 2000)) {
           lastScannedCodeTime = now;
-
           const box = document.getElementById('cameraContainerBox');
 
           try {
-            const decryptedLink = await decryptData(code.data, activeCameraPassword);
-            
-            playSuccessBeep(); 
-
-            const checkOverlay = document.getElementById('successCheckOverlay');
-            const checkIcon = document.getElementById('successCheckIcon');
-            checkOverlay.style.opacity = '1';
-            checkIcon.classList.remove('scale-50');
-            checkIcon.classList.add('scale-100');
-            
-            setTimeout(() => {
-              checkOverlay.style.opacity = '0';
-              checkIcon.classList.remove('scale-100');
-              checkIcon.classList.add('scale-50');
-            }, 800);
-
-            let detectedName = "Jamaah Terverifikasi";
-            let matchedCode = "QR Valid";
-            
-            spreadsheetDataCache.forEach(row => {
-              const hasilCol = row[5] ? row[5].replace(/^"|"$/g, '').trim() : "";
-              if (hasilCol === decryptedLink) {
-                matchedCode = (row[0] || "").replace(/^"|"$/g, '').trim();
-                detectedName = (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' ');
-              }
-            });
-
-            document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
-            
-            if (isUrl(decryptedLink)) {
-              setTimeout(() => {
-                window.open(decryptedLink, '_blank');
-              }, 1000);
+            const decryptedLink = decryptDataSyncOrAsync(code.data, activeCameraPassword);
+            // Jika promise (async), kita tangani
+            if (decryptedLink && typeof decryptedLink.then === 'function') {
+              decryptedLink.then(link => handleSuccessfulScan(link, box)).catch(() => handleFailedScan(box));
             }
-
           } catch (err) {
-            playErrorBeep();
-
-            box.classList.add('animate-shake', 'border-rose-500');
-            const errOverlay = document.getElementById('errorShakeOverlay');
-            errOverlay.style.opacity = '1';
-
-            document.getElementById('lastScannedInfo').innerText = `❌ Password Salah / QR Tidak Valid!`;
-
-            setTimeout(() => {
-              box.classList.remove('animate-shake', 'border-rose-500');
-              errOverlay.style.opacity = '0';
-            }, 600);
+            handleFailedScan(box);
           }
         }
       }
-      animFrameId = requestAnimationFrame(scanFrameContinuous);
+      animFrameId = requestAnimationFrame(scanFrameTurbo);
+    }
+
+    async function decryptDataSyncOrAsync(cipher, password) {
+      return await decryptData(cipher, password);
+    }
+
+    function handleSuccessfulScan(decryptedLink, box) {
+      playSuccessBeep(); 
+      const checkOverlay = document.getElementById('successCheckOverlay');
+      const checkIcon = document.getElementById('successCheckIcon');
+      checkOverlay.style.opacity = '1';
+      checkIcon.classList.remove('scale-50');
+      checkIcon.classList.add('scale-100');
+      
+      setTimeout(() => {
+        checkOverlay.style.opacity = '0';
+        checkIcon.classList.remove('scale-100');
+        checkIcon.classList.add('scale-50');
+      }, 700);
+
+      let detectedName = "Jamaah Terverifikasi";
+      let matchedCode = "QR Valid";
+      
+      spreadsheetDataCache.forEach(row => {
+        const hasilCol = row[5] ? row[5].replace(/^"|"$/g, '').trim() : "";
+        if (hasilCol === decryptedLink) {
+          matchedCode = (row[0] || "").replace(/^"|"$/g, '').trim();
+          detectedName = (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' ');
+        }
+      });
+
+      document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
+      
+      if (isUrl(decryptedLink)) {
+        setTimeout(() => {
+          window.open(decryptedLink, '_blank');
+        }, 800);
+      }
+    }
+
+    function handleFailedScan(box) {
+      playErrorBeep();
+      box.classList.add('animate-shake', 'border-rose-500');
+      const errOverlay = document.getElementById('errorShakeOverlay');
+      errOverlay.style.opacity = '1';
+      document.getElementById('lastScannedInfo').innerText = `❌ Password Salah / QR Tidak Valid!`;
+
+      setTimeout(() => {
+        box.classList.remove('animate-shake', 'border-rose-500');
+        errOverlay.style.opacity = '0';
+      }, 500);
     }
 
     function showCustomDialog(type, title, message) {
