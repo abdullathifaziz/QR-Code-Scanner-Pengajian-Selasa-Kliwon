@@ -94,7 +94,7 @@
             </button>
           </div>
           
-          <!-- Camera Modal Overlay (Kontinu Mode) -->
+          <!-- Camera Modal Overlay (Kontinu Mode dengan Zoom & Flash) -->
           <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
             <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
               <div class="flex justify-between items-center">
@@ -103,7 +103,7 @@
               </div>
               
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-                <video id="modalVideo" class="w-full max-h-[280px] object-cover" playsinline></video>
+                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline></video>
                 
                 <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
@@ -111,6 +111,22 @@
 
                 <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
                   <div class="text-rose-400 text-xs font-bold bg-slate-900/90 px-3 py-1.5 rounded-xl border border-rose-500">Password Salah / Tidak Valid</div>
+                </div>
+              </div>
+
+              <!-- Kontrol Tambahan: Zoom & Flash (Senter) -->
+              <div class="grid grid-cols-2 gap-2 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
+                <div class="flex flex-col justify-center px-1">
+                  <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                    <span>Zoom</span>
+                    <span id="zoomLevelVal">1x</span>
+                  </div>
+                  <input type="range" id="zoomRange" min="1" max="5" step="0.5" value="1" oninput="adjustZoom(this.value)" class="w-full accent-emerald-500 cursor-pointer">
+                </div>
+                <div class="flex items-center justify-center">
+                  <button id="flashToggleBtn" onclick="toggleFlashlight()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm">
+                    <span>🔦</span> <span id="flashBtnText">Flash: Mati</span>
+                  </button>
                 </div>
               </div>
 
@@ -216,51 +232,6 @@
       </div>
     </div>
 
-    <!-- KOTAK TAB REKAP & RIWAYAT PRESENSI TAHUNAN (Mulai Baris D6) -->
-    <div class="bg-slate-800/80 backdrop-blur-xl border border-slate-700/60 rounded-3xl shadow-2xl p-5 space-y-4">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700/50 pb-3">
-        <div>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">📋 Rekap Presensi Tahunan</h3>
-          <p id="totalPresensiBadge" class="text-[11px] text-emerald-400 mt-0.5">Memuat data dari rekap presensi...</p>
-        </div>
-        <button onclick="fetchAllYearlyRekap(true)" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs transition flex items-center gap-1">
-          🔄 Muat Ulang
-        </button>
-      </div>
-
-      <!-- Filter Tahun & Bulan serta Kotak Pencarian -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div>
-          <label class="block text-[10px] font-medium text-slate-400 mb-1">Tahun (Tab Sheet):</label>
-          <select id="filterYear" onchange="renderYearlyRekapView()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-[10px] font-medium text-slate-400 mb-1">Bulan:</label>
-          <select id="filterMonth" onchange="renderYearlyRekapView()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
-            <option value="">Semua Bulan (Kolom D+)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-[10px] font-medium text-slate-400 mb-1">Cari Nama/Kode:</label>
-          <input type="text" id="filterSearch" onkeyup="renderYearlyRekapView()" placeholder="Ketik nama jamaah..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-brand-500">
-        </div>
-      </div>
-
-      <!-- Ringkasan Statistik Kehadiran per Bulan -->
-      <div id="monthlyRekapSummary" class="p-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl flex flex-wrap gap-2 text-xs">
-        <span class="text-slate-400 italic">Statistik kehadiran per bulan akan muncul di sini...</span>
-      </div>
-
-      <!-- Daftar List Rekap Presensi -->
-      <div id="historyListContainer" class="max-h-60 overflow-y-auto space-y-2 pr-1">
-        <div class="text-center py-4 text-xs text-slate-500 italic">Memuat rekap presensi...</div>
-      </div>
-    </div>
-
   </div>
 
   <footer class="text-center py-4 text-[11px] text-slate-500">
@@ -285,178 +256,15 @@
     let localStream = null;
     let animFrameId = null;
     let spreadsheetDataCache = [];
-    let yearlyRekapCache = {}; // Menyimpan rekap per tahun
     let lastScannedCodeTime = 0; 
     let activeCameraPassword = ""; 
-    const BASE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=";
+    let trackCapabilities = null;
+    let activeVideoTrack = null;
+    let flashState = false;
+    const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchSpreadsheetData();
-      fetchAllYearlyRekap();
-    });
-
-    // Mengambil rekap dari tab "REKAP PRESENSI TAHUN" mulai dari baris ke-6 (D6)
-    async function fetchAllYearlyRekap(force = false) {
-      const selectedYear = document.getElementById('filterYear').value || "2026";
-      const badge = document.getElementById('totalPresensiBadge');
-      badge.innerText = `Memuat data rekap presensi ${selectedYear}...`;
-
-      const sheetName = encodeURIComponent(`REKAP PRESENSI ${selectedYear}`);
-      const url = BASE_SPREADSHEET_URL + sheetName;
-
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Tab sheet belum tersedia");
-        const csvText = await response.text();
-        let parsedRows = parseCSV(csvText);
-        
-        // Lewati 5 baris pertama (baris 1 sampai 5) sehingga mulai membaca dari baris ke-6
-        if (parsedRows.length > 5) {
-          parsedRows = parsedRows.slice(5);
-        } else {
-          parsedRows = [];
-        }
-
-        let headers = [];
-        if (parsedRows.length > 0) {
-          // Baris pertama dari slice (baris ke-6 asli) diasumsikan sebagai header kolom bulan (Kolom D ke kanan)
-          headers = parsedRows[0];
-          parsedRows.shift(); // Hapus baris header bulan dari data jamaah
-        }
-
-        let processedRecords = [];
-        parsedRows.forEach((row) => {
-          const noKode = (row[0] || "").replace(/^"|"$/g, '').trim();
-          const nama = (row[1] || "").replace(/^"|"$/g, '').trim().replace(/\+/g, ' ');
-          const alamat = (row[2] || "").replace(/^"|"$/g, '').trim();
-
-          if (!noKode && !nama) return;
-
-          // Kolom D (index 3) dan seterusnya adalah bulan-bulan / sesi kehadiran
-          let monthlyAttendance = {};
-          for (let colIdx = 3; colIdx < row.length; colIdx++) {
-            const bulanLabel = headers[colIdx] ? headers[colIdx].replace(/^"|"$/g, '').trim() : `Bulan ${colIdx - 2}`;
-            const val = (row[colIdx] || "").replace(/^"|"$/g, '').trim();
-            // Jika cell terisi angka atau tanda hadir (misal angka 1 atau tanda centang/huruf)
-            if (val !== "" && val !== "0" && val !== "-") {
-              monthlyAttendance[bulanLabel] = (monthlyAttendance[bulanLabel] || 0) + 1;
-            }
-          }
-
-          processedRecords.push({
-            code: noKode,
-            name: nama,
-            address: alamat,
-            attendance: monthlyAttendance
-          });
-        });
-
-        yearlyRekapCache[selectedYear] = {
-          headers: headers,
-          records: processedRecords
-        };
-
-        badge.innerText = `Berhasil memuat ${processedRecords.length} data rekap tahun ${selectedYear}`;
-        populateMonthDropdown(headers);
-        renderYearlyRekapView();
-      } catch (err) {
-        yearlyRekapCache[selectedYear] = { headers: [], records: [] };
-        badge.innerText = `Tab sheet "REKAP PRESENSI ${selectedYear}" belum ditemukan / kosong.`;
-        populateMonthDropdown([]);
-        renderYearlyRekapView();
-      }
-    }
-
-    function populateMonthDropdown(headers) {
-      const monthSelect = document.getElementById('filterMonth');
-      const curVal = monthSelect.value;
-      monthSelect.innerHTML = '<option value="">Semua Bulan (Kolom D+)</option>';
-
-      // Kolom D ke kanan mulai dari index 3
-      for (let i = 3; i < headers.length; i++) {
-        const hName = headers[i] ? headers[i].replace(/^"|"$/g, '').trim() : "";
-        if (hName) {
-          const opt = document.createElement('option');
-          opt.value = hName;
-          opt.innerText = hName;
-          monthSelect.appendChild(opt);
-        }
-      }
-      monthSelect.value = curVal;
-    }
-
-    function renderYearlyRekapView() {
-      const year = document.getElementById('filterYear').value || "2026";
-      const monthFilter = document.getElementById('filterMonth').value;
-      const searchQuery = document.getElementById('filterSearch').value.toLowerCase().trim();
-
-      const listContainer = document.getElementById('historyListContainer');
-      const summaryContainer = document.getElementById('monthlyRekapSummary');
-      const badge = document.getElementById('totalPresensiBadge');
-
-      const dataObj = yearlyRekapCache[year] || { headers: [], records: [] };
-      const records = dataObj.records;
-
-      let filtered = records.filter(item => {
-        const matchSearch = !searchQuery || `${item.code} ${item.name} ${item.address}`.toLowerCase().includes(searchQuery);
-        let matchMonth = true;
-        if (monthFilter) {
-          matchMonth = item.attendance[monthFilter] && item.attendance[monthFilter] > 0;
-        }
-        return matchSearch && matchMonth;
-      });
-
-      badge.innerText = `Total: ${filtered.length} Jamaah Ditampilkan (${year})`;
-
-      // Hitung total angka kehadiran per bulan untuk rekap ringkasan di atas
-      let aggregateMonths = {};
-      records.forEach(item => {
-        for (let [bulan, count] of Object.entries(item.attendance)) {
-          aggregateMonths[bulan] = (aggregateMonths[bulan] || 0) + count;
-        }
-      });
-
-      summaryContainer.innerHTML = "";
-      if (Object.keys(aggregateMonths).length === 0) {
-        summaryContainer.innerHTML = `<span class="text-slate-400 italic">Belum ada statistik kehadiran per bulan.</span>`;
-      } else {
-        for (const [bulan, totalHadir] of Object.entries(aggregateMonths)) {
-          const badgeItem = document.createElement('div');
-          badgeItem.className = "px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono text-emerald-400";
-          badgeItem.innerText = `${bulan}: ${totalHadir} Hadir`;
-          summaryContainer.appendChild(badgeItem);
-        }
-      }
-
-      if (filtered.length === 0) {
-        listContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-500 italic">Tidak ada data rekap yang cocok.</div>`;
-        return;
-      }
-
-      listContainer.innerHTML = "";
-      filtered.forEach(item => {
-        // Tampilkan daftar bulan yang dihadiri jamaah tersebut
-        let hadirSummary = Object.keys(item.attendance).join(", ") || "Belum ada catatan";
-        
-        const div = document.createElement('div');
-        div.className = "p-3 bg-slate-900/90 border border-slate-700/60 rounded-xl flex justify-between items-center text-xs";
-        div.innerHTML = `
-          <div class="min-w-0 pr-2 space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-amber-400 font-mono">${item.code || '-'}</span>
-              <span class="text-[10px] text-slate-400">${item.address || ''}</span>
-            </div>
-            <div class="text-slate-200 truncate font-semibold">${item.name || 'Jamaah'}</div>
-            <div class="text-[10px] text-emerald-400 font-mono truncate">Kehadiran: ${hadirSummary}</div>
-          </div>
-          <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-semibold flex-shrink-0">Aktif</span>
-        `;
-        listContainer.appendChild(div);
-      });
-    }
-
-    document.getElementById('filterYear').addEventListener('change', () => {
-      fetchAllYearlyRekap();
     });
 
     function playSuccessBeep() {
@@ -497,14 +305,13 @@
 
     async function fetchSpreadsheetData(forceReload = false) {
       const statusElem = document.getElementById('spreadsheetStatus');
-      const url = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
       if (spreadsheetDataCache.length > 0 && !forceReload) {
         if(typeof filterSpreadsheetData === 'function') filterSpreadsheetData();
         return;
       }
 
       try {
-        const response = await fetch(url);
+        const response = await fetch(SPREADSHEET_CSV_URL);
         const csvText = await response.text();
         let parsed = parseCSV(csvText);
         if (parsed.length > 0) parsed.shift(); 
@@ -636,11 +443,34 @@
       const video = document.getElementById('modalVideo');
       modal.classList.remove('hidden');
 
+      // Reset slider zoom & status flash
+      document.getElementById('zoomRange').value = "1";
+      document.getElementById('zoomLevelVal').innerText = "1x";
+      flashState = false;
+      document.getElementById('flashBtnText').innerText = "Flash: Mati";
+
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment', advanced: [{ focusMode: 'continuous' }] } 
+        });
         video.srcObject = localStream;
         video.setAttribute("playsinline", true);
         await video.play();
+
+        // Ambil track video untuk kontrol zoom & torch (flash)
+        activeVideoTrack = localStream.getVideoTracks()[0];
+        trackCapabilities = activeVideoTrack.getCapabilities ? activeVideoTrack.getCapabilities() : {};
+
+        // Atur range slider zoom jika hardware mendukung
+        const zoomSlider = document.getElementById('zoomRange');
+        if (trackCapabilities.zoom) {
+          zoomSlider.min = trackCapabilities.zoom.min;
+          zoomSlider.max = trackCapabilities.zoom.max;
+          zoomSlider.step = trackCapabilities.zoom.step || 0.1;
+          zoomSlider.value = activeVideoTrack.getSettings().zoom || trackCapabilities.zoom.min;
+          document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
+        }
+
         scanFrameContinuous();
       } catch (err) {
         showCustomDialog('error', 'Gagal Akses Kamera', err.message);
@@ -648,7 +478,45 @@
       }
     }
 
+    async function adjustZoom(val) {
+      document.getElementById('zoomLevelVal').innerText = `${val}x`;
+      if (activeVideoTrack && activeVideoTrack.applyConstraints) {
+        try {
+          await activeVideoTrack.applyConstraints({
+            advanced: [{ zoom: parseFloat(val) }]
+          });
+        } catch (e) {
+          // Fallback visual CSS zoom jika hardware constraint tidak diizinkan browser
+          const video = document.getElementById('modalVideo');
+          video.style.transform = `scale(${val})`;
+        }
+      } else {
+        const video = document.getElementById('modalVideo');
+        video.style.transform = `scale(${val})`;
+      }
+    }
+
+    async function toggleFlashlight() {
+      if (!activeVideoTrack) return;
+      try {
+        flashState = !flashState;
+        await activeVideoTrack.applyConstraints({
+          advanced: [{ torch: flashState }]
+        });
+        document.getElementById('flashBtnText').innerText = flashState ? "Flash: Nyala" : "Flash: Mati";
+        document.getElementById('flashToggleBtn').className = flashState ? 
+          "w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm" : 
+          "w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm";
+      } catch (err) {
+        showCustomDialog('info', 'Flash Tidak Didukung', 'Perangkat atau browser Anda tidak mendukung kontrol flash otomatis melalui web.');
+        flashState = !flashState; // kembalikan state
+      }
+    }
+
     function stopCamera() {
+      if (activeVideoTrack && flashState) {
+        try { activeVideoTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
+      }
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
@@ -657,6 +525,8 @@
         cancelAnimationFrame(animFrameId);
         animFrameId = null;
       }
+      const video = document.getElementById('modalVideo');
+      video.style.transform = 'scale(1)';
       document.getElementById('cameraModal').classList.add('hidden');
     }
 
