@@ -105,13 +105,13 @@
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
                 <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
                 
-                <!-- Popup Berhasil Scan (Tampil di atas kamera selama 5 detik) -->
-                <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
+                <!-- Popup Berhasil Scan (Teks Diperbesar) -->
+                <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg mb-3 animate-bounce">✓</div>
-                  <h4 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
-                  <div id="popupCodeText" class="text-xs font-mono text-amber-400 font-bold"></div>
-                  <div id="popupNameText" class="text-sm text-white font-semibold mt-1 text-center"></div>
-                  <p class="text-[10px] text-slate-400 mt-3 italic">Membuka tautan dalam 5 detik...</p>
+                  <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
+                  <div id="popupCodeText" class="text-base font-mono text-amber-400 font-extrabold px-3 py-1 bg-slate-900 rounded-xl border border-amber-500/30 mb-1"></div>
+                  <div id="popupNameText" class="text-lg text-white font-bold mt-1 text-center px-2 leading-tight"></div>
+                  <p class="text-[11px] text-slate-400 mt-3 italic">Membuka tautan dalam 5 detik...</p>
                 </div>
 
                 <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
@@ -606,8 +606,8 @@
         }
       });
 
-      // Tampilkan popup informasi selama 5 detik
-      document.getElementById('popupCodeText').innerText = `Nomor Kode: ${matchedCode}`;
+      // Tampilkan popup informasi dengan teks besar selama 5 detik
+      document.getElementById('popupCodeText').innerText = `Kode: ${matchedCode}`;
       document.getElementById('popupNameText').innerText = detectedName;
 
       const popupOverlay = document.getElementById('successPopupOverlay');
