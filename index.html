@@ -75,11 +75,11 @@
           
           <!-- Kotak Password Kamera di Awal -->
           <div class="p-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl space-y-3 shadow-lg">
-            <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">🔑 Password Kunci Scanner:</label>
-            <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
+            <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">Password Scanner:</label>
+            <input type="password" id="cameraPasswordInput" placeholder="Masukkan password" class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
             
             <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-              <span>📷 Buka Kamera Pemindai (Instan)</span>
+              <span>Buka Kamera Pemindai</span>
             </button>
           </div>
 
@@ -98,8 +98,8 @@
           <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
             <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
               <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
-                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">⚡ Ultra Instan</span>
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan QR</h3>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">⚡</span>
               </div>
               
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
@@ -136,7 +136,7 @@
               </div>
 
               <div id="lastScannedInfo" class="p-2.5 bg-slate-800/90 rounded-xl text-xs text-amber-400 font-mono truncate">
-                Arahkan kamera ke QR Code jamaah...
+                Arahkan kamera ke QR Code jamaah
               </div>
 
               <button onclick="stopCamera()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition">
