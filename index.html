@@ -79,7 +79,7 @@
             <input type="password" id="cameraPasswordInput" placeholder="Masukkan password (misal: 1)..." class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-brand-500">
             
             <button onclick="requestStartCamera()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-500 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/25 active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
-              <span>📷 Buka Kamera Pemindai (Super Cepat)</span>
+              <span>📷 Buka Kamera Pemindai (Instan)</span>
             </button>
           </div>
 
@@ -99,11 +99,11 @@
             <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
               <div class="flex justify-between items-center">
                 <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan Beruntun Otomatis</h3>
-                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">Turbo Aktif</span>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">⚡ Ultra Instan</span>
               </div>
               
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted></video>
+                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
                 
                 <div id="successCheckOverlay" class="absolute inset-0 bg-emerald-950/60 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg scale-50 transition-transform duration-200" id="successCheckIcon">✓</div>
@@ -254,17 +254,26 @@
 
   <script>
     let localStream = null;
-    let animFrameId = null;
+    let scanInterval = null;
     let spreadsheetDataCache = [];
     let lastScannedCodeTime = 0; 
     let activeCameraPassword = ""; 
     let trackCapabilities = null;
     let activeVideoTrack = null;
     let flashState = false;
+    let barcodeDetector = null;
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
       fetchSpreadsheetData();
+      // Inisialisasi Native BarcodeDetector jika didukung browser
+      if ('BarcodeDetector' in window) {
+        BarcodeDetector.getSupportedFormats().then(supportedFormats => {
+          if (supportedFormats.includes('qr_code')) {
+            barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+          }
+        }).catch(e => {});
+      }
     });
 
     function playSuccessBeep() {
@@ -449,7 +458,6 @@
       document.getElementById('flashBtnText').innerText = "Flash: Mati";
 
       try {
-        // Menggunakan resolusi ideal agar proses pemindaian pixel lebih ringan & cepat
         localStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: 'environment', 
@@ -474,7 +482,7 @@
           document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
         }
 
-        scanFrameTurbo();
+        startFastScanningLoop();
       } catch (err) {
         showCustomDialog('error', 'Gagal Akses Kamera', err.message);
         stopCamera();
@@ -506,7 +514,7 @@
           "w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm" : 
           "w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition flex items-center justify-center gap-1.5 text-xs shadow-sm";
       } catch (err) {
-        showCustomDialog('info', 'Flash Tidak Didukung', 'Perangkat atau browser Anda tidak mendukung kontrol flash otomatis melalui web.');
+        showCustomDialog('info', 'Flash Tidak Didukung', 'Perangkat atau browser Anda tidak mendukung kontrol flash otomatis.');
         flashState = !flashState;
       }
     }
@@ -519,54 +527,65 @@
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
       }
-      if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
-        animFrameId = null;
+      if (scanInterval) {
+        clearInterval(scanInterval);
+        scanInterval = null;
       }
       const video = document.getElementById('modalVideo');
       video.style.transform = 'scale(1)';
       document.getElementById('cameraModal').classList.add('hidden');
     }
 
-    // Fungsi Turbo Scan: Mengoptimalkan ukuran kanvas agar pembacaan QR instan tanpa lag
-    function scanFrameTurbo() {
+    // Menggunakan pemindaian super cepat berbasis native BarcodeDetector / Canvas
+    function startFastScanningLoop() {
       const video = document.getElementById('modalVideo');
       const canvas = document.getElementById('fileCanvas');
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        // Reduksi ukuran frame secara proporsional untuk mempercepat parsing jsQR
-        const scaleFactor = 0.65; 
-        canvas.width = video.videoWidth * scaleFactor;
-        canvas.height = video.videoHeight * scaleFactor;
+      scanInterval = setInterval(async () => {
+        if (!localStream || video.paused || video.ended) return;
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert"
-        });
+        let scannedText = null;
 
-        const now = Date.now();
-        if (code && code.data && (now - lastScannedCodeTime > 2000)) {
-          lastScannedCodeTime = now;
-          const box = document.getElementById('cameraContainerBox');
-
-          try {
-            const decryptedLink = decryptDataSyncOrAsync(code.data, activeCameraPassword);
-            // Jika promise (async), kita tangani
-            if (decryptedLink && typeof decryptedLink.then === 'function') {
-              decryptedLink.then(link => handleSuccessfulScan(link, box)).catch(() => handleFailedScan(box));
+        try {
+          // Metode 1: Menggunakan BarcodeDetector Bawaan Browser (Sangat Cepat & Hardware-Accelerated)
+          if (barcodeDetector) {
+            const codes = await barcodeDetector.detect(video);
+            if (codes && codes.length > 0) {
+              scannedText = codes[0].rawValue;
             }
-          } catch (err) {
-            handleFailedScan(box);
+          }
+        } catch (e) {}
+
+        // Metode 2: Fallback ke jsQR jika BarcodeDetector belum siap/tidak ada
+        if (!scannedText && video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = 320; // Ukuran kecil agar komputasi instan tanpa lag
+          canvas.height = 240;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const qrResult = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "dontInvert" });
+          if (qrResult) {
+            scannedText = qrResult.data;
           }
         }
-      }
-      animFrameId = requestAnimationFrame(scanFrameTurbo);
-    }
 
-    async function decryptDataSyncOrAsync(cipher, password) {
-      return await decryptData(cipher, password);
+        if (scannedText) {
+          const now = Date.now();
+          if (now - lastScannedCodeTime > 2000) {
+            lastScannedCodeTime = now;
+            const box = document.getElementById('cameraContainerBox');
+
+            try {
+              const decryptedLink = await decryptData(scannedText, activeCameraPassword);
+              if (decryptedLink) {
+                handleSuccessfulScan(decryptedLink, box);
+              }
+            } catch (err) {
+              handleFailedScan(box);
+            }
+          }
+        }
+      }, 100); // Cek setiap 100 milidetik (sangat responsif tanpa membebani CPU)
     }
 
     function handleSuccessfulScan(decryptedLink, box) {
