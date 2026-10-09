@@ -105,13 +105,13 @@
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
                 <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
                 
-                <!-- Popup Berhasil Scan (Tampil di atas kamera selama 3 detik) -->
+                <!-- Popup Berhasil Scan (Tampil di atas kamera selama 5 detik) -->
                 <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg mb-3 animate-bounce">✓</div>
                   <h4 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
                   <div id="popupCodeText" class="text-xs font-mono text-amber-400 font-bold"></div>
                   <div id="popupNameText" class="text-sm text-white font-semibold mt-1 text-center"></div>
-                  <p class="text-[10px] text-slate-400 mt-3 italic">Membuka tautan dalam 3 detik...</p>
+                  <p class="text-[10px] text-slate-400 mt-3 italic">Membuka tautan dalam 5 detik...</p>
                 </div>
 
                 <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
@@ -576,7 +576,7 @@
           const now = Date.now();
           if (now - lastScannedCodeTime > 2000) {
             lastScannedCodeTime = now;
-            isProcessingScan = true; // Kunci sementara agar tidak double scan
+            isProcessingScan = true;
 
             try {
               const decryptedLink = await decryptData(scannedText, activeCameraPassword);
@@ -606,7 +606,7 @@
         }
       });
 
-      // Tampilkan popup informasi nomor kode dan nama jamaah selama 3 detik
+      // Tampilkan popup informasi selama 5 detik
       document.getElementById('popupCodeText').innerText = `Nomor Kode: ${matchedCode}`;
       document.getElementById('popupNameText').innerText = detectedName;
 
@@ -616,7 +616,7 @@
 
       document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
 
-      // Jeda 3 detik sebelum otomatis membuka tautan link
+      // Jeda 5 detik sebelum otomatis membuka tautan link
       setTimeout(() => {
         popupOverlay.style.opacity = '0';
         popupOverlay.style.pointerEvents = 'none';
@@ -625,7 +625,7 @@
         if (isUrl(decryptedLink)) {
           window.open(decryptedLink, '_blank');
         }
-      }, 3000);
+      }, 5000);
     }
 
     function handleFailedScan() {
