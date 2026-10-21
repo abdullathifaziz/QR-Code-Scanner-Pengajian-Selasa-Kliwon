@@ -452,6 +452,7 @@
       startCamera();
     }
 
+
     async function startCamera() {
       const modal = document.getElementById('cameraModal');
       const video = document.getElementById('modalVideo');
@@ -469,7 +470,10 @@
             facingMode: 'environment', 
             width: { ideal: 1280 }, 
             height: { ideal: 720 },
-            advanced: [{ focusMode: 'continuous' }] 
+            advanced: [
+              { focusMode: 'continuous' },
+              { zoom: 1.0 }
+            ] 
           } 
         });
         video.srcObject = localStream;
@@ -484,7 +488,14 @@
           zoomSlider.min = trackCapabilities.zoom.min;
           zoomSlider.max = trackCapabilities.zoom.max;
           zoomSlider.step = trackCapabilities.zoom.step || 0.1;
-          zoomSlider.value = activeVideoTrack.getSettings().zoom || trackCapabilities.zoom.min;
+          
+          // Paksa set ke nilai minimum/1x perangkat jika didukung capabilities
+          const minZoom = trackCapabilities.zoom.min;
+          try {
+            await activeVideoTrack.applyConstraints({ advanced: [{ zoom: minZoom }] });
+          } catch (e) {}
+
+          zoomSlider.value = activeVideoTrack.getSettings().zoom || minZoom;
           document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
         }
 
@@ -494,6 +505,9 @@
         stopCamera();
       }
     }
+
+    
+    
 
     async function adjustZoom(val) {
       document.getElementById('zoomLevelVal').innerText = `${val}x`;
