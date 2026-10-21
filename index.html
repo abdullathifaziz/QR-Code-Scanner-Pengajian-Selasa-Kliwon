@@ -105,7 +105,7 @@
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
                 <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
                 
-                <!-- Popup Berhasil Scan (Teks Diperbesar) -->
+                <!-- Popup Berhasil Scan -->
                 <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
                   <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white text-3xl shadow-lg mb-3 animate-bounce">✓</div>
                   <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
@@ -452,7 +452,6 @@
       startCamera();
     }
 
-
     async function startCamera() {
       const modal = document.getElementById('cameraModal');
       const video = document.getElementById('modalVideo');
@@ -505,9 +504,6 @@
         stopCamera();
       }
     }
-
-    
-    
 
     async function adjustZoom(val) {
       document.getElementById('zoomLevelVal').innerText = `${val}x`;
@@ -620,7 +616,7 @@
         }
       });
 
-      // Tampilkan popup informasi dengan teks besar selama 1 detik
+      // Tampilkan popup informasi dengan durasi 1 detik
       document.getElementById('popupCodeText').innerText = `Kode: ${matchedCode}`;
       document.getElementById('popupNameText').innerText = detectedName;
 
