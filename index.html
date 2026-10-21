@@ -98,7 +98,7 @@
           <div id="cameraModal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
             <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-4 shadow-2xl relative">
               <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan QR (Kamera Normal)</h3>
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Scan QR</h3>
                 <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">⚡</span>
               </div>
               
@@ -464,26 +464,14 @@
       document.getElementById('flashBtnText').innerText = "Flash: Mati";
 
       try {
-        // Memaksa kamera belakang utama dengan menetapkan rasio standar agar di mayoritas 
-        // HP (terutama Android) tidak terpilih lensa ultrawide/wide otomatis.
-        let constraints = { 
+        localStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
-            facingMode: { exact: 'environment' }, 
+            facingMode: 'environment', 
             width: { ideal: 1280 }, 
             height: { ideal: 720 },
-            aspectRatio: { ideal: 1.7777777778 }, // Standar 16:9 kamera utama
             advanced: [{ focusMode: 'continuous' }] 
           } 
-        };
-
-        try {
-          localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (e1) {
-          // Fallback jika 'exact' ditolak oleh browser/perangkat tertentu
-          constraints.video.facingMode = 'environment';
-          localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        }
-
+        });
         video.srcObject = localStream;
         video.setAttribute("playsinline", true);
         await video.play();
@@ -492,12 +480,30 @@
         trackCapabilities = activeVideoTrack.getCapabilities ? activeVideoTrack.getCapabilities() : {};
 
         const zoomSlider = document.getElementById('zoomRange');
+        let initialZoom = 1;
+
         if (trackCapabilities.zoom) {
           zoomSlider.min = trackCapabilities.zoom.min;
           zoomSlider.max = trackCapabilities.zoom.max;
           zoomSlider.step = trackCapabilities.zoom.step || 0.1;
-          zoomSlider.value = activeVideoTrack.getSettings().zoom || trackCapabilities.zoom.min;
-          document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
+          
+          // Penyesuaian cerdas: Jika HP otomatis masuk ke mode wide/ultrawide (misal min zoom < 1x, cth: 0.5x),
+          // naikkan sedikit ke angka 1x atau batas netral lensanya agar tidak terlalu lebar/fisheye.
+          if (trackCapabilities.zoom.min < 1) {
+            initialZoom = Math.max(1, trackCapabilities.zoom.min);
+          } else {
+            initialZoom = trackCapabilities.zoom.min;
+          }
+
+          zoomSlider.value = initialZoom;
+          document.getElementById('zoomLevelVal').innerText = `${initialZoom}x`;
+          
+          // Terapkan penyesuaian zoom jika didukung perangkat
+          if (activeVideoTrack.applyConstraints && initialZoom > 1) {
+            try {
+              await activeVideoTrack.applyConstraints({ advanced: [{ zoom: initialZoom }] });
+            } catch (e) {}
+          }
         }
 
         startFastScanningLoop();
