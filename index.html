@@ -102,8 +102,18 @@
                 <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-mono">⚡</span>
               </div>
               
+              <!-- Pilihan Lensa Kamera (Wide, Utama, Tele) -->
+              <div class="space-y-1 text-left">
+                <label class="block text-[11px] font-semibold text-slate-400">Pilih Lensa Kamera:</label>
+                <div class="grid grid-cols-3 gap-1.5 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700/60">
+                  <button type="button" onclick="setLensType('wide')" id="btnLensWide" class="py-1.5 px-2 text-[11px] font-semibold rounded-lg bg-slate-700 text-slate-300 hover:text-white transition text-center">Wide</button>
+                  <button type="button" onclick="setLensType('main')" id="btnLensMain" class="py-1.5 px-2 text-[11px] font-semibold rounded-lg bg-brand-600 text-white transition text-center shadow">Utama</button>
+                  <button type="button" onclick="setLensType('tele')" id="btnLensTele" class="py-1.5 px-2 text-[11px] font-semibold rounded-lg bg-slate-700 text-slate-300 hover:text-white transition text-center">Tele</button>
+                </div>
+              </div>
+
               <div id="cameraContainerBox" class="relative overflow-hidden rounded-2xl bg-black border-2 border-emerald-500/40 transition-all duration-300">
-                <video id="modalVideo" class="w-full max-h-[260px] object-cover" playsinline muted autoplay></video>
+                <video id="modalVideo" class="w-full max-h-[240px] object-cover" playsinline muted autoplay></video>
                 
                 <!-- Popup Berhasil Scan -->
                 <div id="successPopupOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200 z-20">
@@ -268,6 +278,7 @@
     let flashState = false;
     let barcodeDetector = null;
     let isProcessingScan = false;
+    let currentLensSelection = 'main'; // Default kamera utama
     const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KcpS1gOud7yqaIvPjSquYL1ExW5WCEyhcaGvrc-MP6k/gviz/tq?tqx=out:csv&sheet=DATA%20ANGGOTA";
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -452,29 +463,66 @@
       startCamera();
     }
 
+    function setLensType(lens) {
+      currentLensSelection = lens;
+      
+      // Update styling tombol lensa
+      ['wide', 'main', 'tele'].forEach(l => {
+        const btn = document.getElementById(`btnLens${l.charAt(0).toUpperCase() + l.slice(1)}`);
+        if(btn) {
+          if(l === lens) {
+            btn.className = "py-1.5 px-2 text-[11px] font-semibold rounded-lg bg-brand-600 text-white transition text-center shadow";
+          } else {
+            btn.className = "py-1.5 px-2 text-[11px] font-semibold rounded-lg bg-slate-700 text-slate-300 hover:text-white transition text-center";
+          }
+        }
+      });
+
+      // Restart kamera dengan pilihan lensa baru
+      if(localStream) {
+        startCamera();
+      }
+    }
+
     async function startCamera() {
       const modal = document.getElementById('cameraModal');
       const video = document.getElementById('modalVideo');
       modal.classList.remove('hidden');
       isProcessingScan = false;
 
+      if(localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+      if (scanInterval) {
+        clearInterval(scanInterval);
+        scanInterval = null;
+      }
+
       document.getElementById('zoomRange').value = "1";
       document.getElementById('zoomLevelVal').innerText = "1x";
       flashState = false;
       document.getElementById('flashBtnText').innerText = "Flash: Mati";
 
+      let videoConstraints = {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        advanced: [{ focusMode: 'continuous' }]
+      };
+
+      // Konfigurasi pemilihan lensa berdasarkan preferensi pengguna
+      if (currentLensSelection === 'wide') {
+        videoConstraints.facingMode = { exact: 'environment' };
+        // Mencoba memaksa sudut pandang lebar (ultra-wide) jika didukung perangkat
+        videoConstraints.aspectRatio = { ideal: 1.333 };
+      } else if (currentLensSelection === 'tele') {
+        // Menggunakan constraints zoom awal/coba panggil kamera tele jika diizinkan device
+        videoConstraints.advanced.push({ zoom: 2.0 });
+      }
+
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            facingMode: 'environment', 
-            width: { ideal: 1280 }, 
-            height: { ideal: 720 },
-            advanced: [
-              { focusMode: 'continuous' },
-              { zoom: 1.0 }
-            ] 
-          } 
-        });
+        localStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
         video.srcObject = localStream;
         video.setAttribute("playsinline", true);
         await video.play();
@@ -488,20 +536,28 @@
           zoomSlider.max = trackCapabilities.zoom.max;
           zoomSlider.step = trackCapabilities.zoom.step || 0.1;
           
-          // Paksa set ke nilai minimum/1x perangkat jika didukung capabilities
-          const minZoom = trackCapabilities.zoom.min;
-          try {
-            await activeVideoTrack.applyConstraints({ advanced: [{ zoom: minZoom }] });
-          } catch (e) {}
-
-          zoomSlider.value = activeVideoTrack.getSettings().zoom || minZoom;
+          let initialZoom = trackCapabilities.zoom.min;
+          if (currentLensSelection === 'tele') {
+            initialZoom = Math.min(2.0, trackCapabilities.zoom.max);
+          }
+          zoomSlider.value = activeVideoTrack.getSettings().zoom || initialZoom;
           document.getElementById('zoomLevelVal').innerText = `${zoomSlider.value}x`;
+          adjustZoom(zoomSlider.value);
         }
 
         startFastScanningLoop();
       } catch (err) {
-        showCustomDialog('error', 'Gagal Akses Kamera', err.message);
-        stopCamera();
+        // Fallback jika exact/constraints gagal
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          video.srcObject = localStream;
+          await video.play();
+          activeVideoTrack = localStream.getVideoTracks()[0];
+          startFastScanningLoop();
+        } catch(fallbackErr) {
+          showCustomDialog('error', 'Gagal Akses Kamera', err.message);
+          stopCamera();
+        }
       }
     }
 
@@ -616,7 +672,6 @@
         }
       });
 
-      // Tampilkan popup informasi dengan durasi 1 detik
       document.getElementById('popupCodeText').innerText = `Kode: ${matchedCode}`;
       document.getElementById('popupNameText').innerText = detectedName;
 
@@ -626,7 +681,6 @@
 
       document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
 
-      // Jeda 1 detik sebelum otomatis membuka tautan link
       setTimeout(() => {
         popupOverlay.style.opacity = '0';
         popupOverlay.style.pointerEvents = 'none';
