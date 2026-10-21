@@ -111,7 +111,7 @@
                   <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Berhasil Terverifikasi!</h4>
                   <div id="popupCodeText" class="text-base font-mono text-amber-400 font-extrabold px-3 py-1 bg-slate-900 rounded-xl border border-amber-500/30 mb-1"></div>
                   <div id="popupNameText" class="text-lg text-white font-bold mt-1 text-center px-2 leading-tight"></div>
-                  <p class="text-[11px] text-slate-400 mt-3 italic">Membuka tautan dalam 5 detik...</p>
+                  <p class="text-[11px] text-slate-400 mt-3 italic">Membuka tautan dalam 1 detik...</p>
                 </div>
 
                 <div id="errorShakeOverlay" class="absolute inset-0 bg-rose-950/50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-150">
@@ -606,7 +606,7 @@
         }
       });
 
-      // Tampilkan popup informasi dengan teks besar selama 5 detik
+      // Tampilkan popup informasi dengan teks besar selama 1 detik
       document.getElementById('popupCodeText').innerText = `Kode: ${matchedCode}`;
       document.getElementById('popupNameText').innerText = detectedName;
 
@@ -616,7 +616,7 @@
 
       document.getElementById('lastScannedInfo').innerText = `✓ Sukses: [${matchedCode}] ${detectedName}`;
 
-      // Jeda 5 detik sebelum otomatis membuka tautan link
+      // Jeda 1 detik sebelum otomatis membuka tautan link
       setTimeout(() => {
         popupOverlay.style.opacity = '0';
         popupOverlay.style.pointerEvents = 'none';
@@ -625,7 +625,7 @@
         if (isUrl(decryptedLink)) {
           window.open(decryptedLink, '_blank');
         }
-      }, 2000);
+      }, 500);
     }
 
     function handleFailedScan() {
